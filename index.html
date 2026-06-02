@@ -187,21 +187,67 @@
                 if (!localStorage.getItem('bolt_users')) localStorage.setItem('bolt_users', JSON.stringify([]));
             },
             getProducts: () => JSON.parse(localStorage.getItem('bolt_products')),
+
+            // ── Fetch products from Supabase (called on app init & refresh) ──
+            fetchProductsFromSupabase: async () => {
+                try {
+                    const { data, error } = await supabaseClient
+                        .from('products')
+                        .select('*')
+                        .order('id', { ascending: true });
+                    if (!error && data && data.length > 0) {
+                        const mapped = data.map(p => ({
+                            id: p.id, name: p.name, category: p.category,
+                            price: Number(p.price), oldPrice: Number(p.old_price) || 0,
+                            unit: p.unit || '', rating: Number(p.rating) || 0,
+                            stock: Number(p.stock), image: p.image || '',
+                            description: p.description || ''
+                        }));
+                        localStorage.setItem('bolt_products', JSON.stringify(mapped));
+                        console.log('[Supabase Products] ✅ Loaded', mapped.length, 'products');
+                        return mapped;
+                    }
+                } catch (err) {
+                    console.warn('[Supabase Products] Fetch failed, using localStorage:', err.message);
+                }
+                return JSON.parse(localStorage.getItem('bolt_products'));
+            },
+
             saveProduct: (p) => {
                 const products = BoltDB.getProducts();
-                if (p.id) {
+                if (p.id && products.find(x => x.id === p.id)) {
                     const idx = products.findIndex(x => x.id === p.id);
                     products[idx] = p;
                 } else {
-                    p.id = Date.now();
+                    if (!p.id) p.id = Date.now();
                     products.push(p);
                 }
                 localStorage.setItem('bolt_products', JSON.stringify(products));
+
+                // Sync to Supabase
+                supabaseClient.from('products').upsert({
+                    id: p.id, name: p.name, category: p.category,
+                    price: p.price, old_price: p.oldPrice || 0,
+                    unit: p.unit || '', rating: p.rating || 0,
+                    stock: p.stock || 0, image: p.image || '',
+                    description: p.description || '',
+                    updated_at: new Date().toISOString()
+                }, { onConflict: 'id' }).then(({ error }) => {
+                    if (error) console.warn('[Supabase Products] Upsert error:', error.message);
+                    else console.log('[Supabase Products] ✅ Product synced:', p.name);
+                });
             },
+
             deleteProduct: (id) => {
                 let products = BoltDB.getProducts();
                 products = products.filter(p => p.id !== id);
                 localStorage.setItem('bolt_products', JSON.stringify(products));
+
+                // Delete from Supabase
+                supabaseClient.from('products').delete().eq('id', id).then(({ error }) => {
+                    if (error) console.warn('[Supabase Products] Delete error:', error.message);
+                    else console.log('[Supabase Products] ✅ Product deleted:', id);
+                });
             },
 
             // ── Orders: localStorage + Supabase sync ──
@@ -378,6 +424,13 @@
             const [products, setProducts] = useState(BoltDB.getProducts());
             const [toasts, setToasts] = useState([]);
 
+            // Load products from Supabase on app start (so customers see real-time data)
+            useEffect(() => {
+                BoltDB.fetchProductsFromSupabase().then(prods => {
+                    if (prods) setProducts(prods);
+                });
+            }, []);
+
             // Persist session, cart and wishlist
             useEffect(() => { localStorage.setItem('bolt_session', JSON.stringify(user)); }, [user]);
             useEffect(() => { localStorage.setItem('bolt_cart', JSON.stringify(cart)); }, [cart]);
@@ -387,7 +440,11 @@
 
             const navigate = (page, params = {}) => setRoute({ page, params });
 
-            const refreshProducts = () => setProducts(BoltDB.getProducts());
+            const refreshProducts = async () => {
+                const prods = await BoltDB.fetchProductsFromSupabase();
+                if (prods) setProducts(prods);
+                else setProducts(BoltDB.getProducts());
+            };
 
             const notify = (message, type = 'success') => {
                 const id = Date.now() + Math.random();
@@ -1527,7 +1584,8 @@
             const [editProduct, setEditProduct] = useState(null);
             
             const loadData = async () => {
-                setAdminProducts(BoltDB.getProducts());
+                const prods = await BoltDB.fetchProductsFromSupabase();
+                setAdminProducts(prods || BoltDB.getProducts());
                 setAdminUsers(BoltDB.getUsers());
 
                 // ── Orders: Fetch from Supabase first, fallback to localStorage ──
@@ -1830,7 +1888,7 @@
                         <div className="bg-white rounded-xl shadow-sm border border-red-200 p-6">
                             <h3 className="font-bold text-red-600 mb-2"><i className="fa-solid fa-triangle-exclamation mr-2"></i>Danger Zone</h3>
                             <p className="text-sm text-gray-500 mb-4">Reset all products to defaults. This cannot be undone.</p>
-                            <button onClick={() => { if(confirm('Reset products to defaults? This deletes all custom products.')) { localStorage.setItem('bolt_products', JSON.stringify(MOCK_PRODUCTS)); loadData(); refreshProducts(); } }} className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-bold">Reset Products</button>
+                            <button onClick={async () => { if(confirm('Reset products to defaults? This deletes all custom products.')) { localStorage.setItem('bolt_products', JSON.stringify(MOCK_PRODUCTS)); await supabaseClient.from('products').delete().neq('id', 0); for (const p of MOCK_PRODUCTS) { await supabaseClient.from('products').upsert({ id: p.id, name: p.name, category: p.category, price: p.price, old_price: p.oldPrice || 0, unit: p.unit, rating: p.rating, stock: p.stock, image: p.image, description: p.description, updated_at: new Date().toISOString() }, { onConflict: 'id' }); } loadData(); refreshProducts(); } }} className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-bold">Reset Products</button>
                         </div>
                     </div>
                 );
