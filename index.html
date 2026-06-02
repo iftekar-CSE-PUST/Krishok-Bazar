@@ -1412,11 +1412,31 @@
             const [expanded, setExpanded] = useState(null);
 
             useEffect(() => {
-                if (!user) navigate('Auth');
-                else {
+                if (!user) { navigate('Auth'); return; }
+
+                const loadProfileOrders = async () => {
+                    try {
+                        const { data, error } = await supabaseClient
+                            .from('orders')
+                            .select('*')
+                            .eq('user_id', String(user.id))
+                            .order('created_at', { ascending: false });
+
+                        if (!error && data && data.length > 0) {
+                            setOrders(data.map(o => ({
+                                id: o.order_id, userId: o.user_id,
+                                customerInfo: { name: o.customer_name, phone: o.customer_phone, address: o.customer_address, district: o.customer_district },
+                                items: o.items || [], total: Number(o.total), deliveryCharge: Number(o.delivery_charge),
+                                paymentMethod: o.payment_method, transactionId: o.transaction_id,
+                                status: o.status, date: o.created_at, estimatedDelivery: o.estimated_delivery
+                            })));
+                            return;
+                        }
+                    } catch (err) { /* fallback below */ }
                     const allOrders = BoltDB.getOrders();
                     setOrders(allOrders.filter(o => o.userId === user.id).reverse());
-                }
+                };
+                loadProfileOrders();
             }, [user]);
 
             const handleLogout = () => { setUser(null); notify('লগআউট হয়েছে', 'info'); navigate('Home'); };
@@ -1506,10 +1526,50 @@
             const [showProductForm, setShowProductForm] = useState(false);
             const [editProduct, setEditProduct] = useState(null);
             
-            const loadData = () => {
+            const loadData = async () => {
                 setAdminProducts(BoltDB.getProducts());
-                setAdminOrders(BoltDB.getOrders());
                 setAdminUsers(BoltDB.getUsers());
+
+                // ── Orders: Fetch from Supabase first, fallback to localStorage ──
+                try {
+                    const { data, error } = await supabaseClient
+                        .from('orders')
+                        .select('*')
+                        .order('created_at', { ascending: false });
+
+                    if (!error && data && data.length > 0) {
+                        // Map Supabase columns back to the format the dashboard expects
+                        const sbOrders = data.map(o => ({
+                            id: o.order_id,
+                            userId: o.user_id,
+                            customerInfo: {
+                                name: o.customer_name,
+                                phone: o.customer_phone,
+                                address: o.customer_address,
+                                district: o.customer_district,
+                                note: o.customer_note
+                            },
+                            items: o.items || [],
+                            subtotal: Number(o.subtotal),
+                            deliveryCharge: Number(o.delivery_charge),
+                            total: Number(o.total),
+                            paymentMethod: o.payment_method,
+                            transactionId: o.transaction_id,
+                            status: o.status,
+                            date: o.created_at,
+                            estimatedDelivery: o.estimated_delivery
+                        }));
+                        setAdminOrders(sbOrders);
+                        console.log('[Admin] ✅ Orders loaded from Supabase:', sbOrders.length);
+                        return;
+                    }
+                    if (error) console.warn('[Admin] Supabase orders fetch error:', error.message);
+                } catch (err) {
+                    console.warn('[Admin] Supabase fetch failed, using localStorage:', err.message);
+                }
+
+                // Fallback: use localStorage orders
+                setAdminOrders(BoltDB.getOrders());
             };
 
             useEffect(() => {
@@ -1713,7 +1773,7 @@
                                             <td className="p-4 font-bold">{o.total} ৳</td>
                                             <td className="p-4"><span className="bg-gray-100 px-2 py-1 rounded text-xs font-bold">{o.status}</span></td>
                                             <td className="p-4">
-                                                <select value={o.status} onChange={(e) => { BoltDB.updateOrderStatus(o.id, e.target.value); loadData(); }} className="border rounded p-1 text-sm outline-none">
+                                                <select value={o.status} onChange={async (e) => { BoltDB.updateOrderStatus(o.id, e.target.value); await loadData(); }} className="border rounded p-1 text-sm outline-none">
                                                     <option value="Pending">Pending</option>
                                                     <option value="Processing">Processing</option>
                                                     <option value="Shipped">Shipped</option>
@@ -1843,11 +1903,52 @@ const MyOrders = () => {
     const [orders, setOrders] = useState([]);
 
     useEffect(() => {
-        if (!user) navigate('Auth');
-        else {
+        if (!user) { navigate('Auth'); return; }
+
+        const loadOrders = async () => {
+            // Try Supabase first for real-time cross-device orders
+            try {
+                const { data, error } = await supabaseClient
+                    .from('orders')
+                    .select('*')
+                    .eq('user_id', String(user.id))
+                    .order('created_at', { ascending: false });
+
+                if (!error && data && data.length > 0) {
+                    const sbOrders = data.map(o => ({
+                        id: o.order_id,
+                        userId: o.user_id,
+                        customerInfo: {
+                            name: o.customer_name,
+                            phone: o.customer_phone,
+                            address: o.customer_address,
+                            district: o.customer_district,
+                            note: o.customer_note
+                        },
+                        items: o.items || [],
+                        subtotal: Number(o.subtotal),
+                        deliveryCharge: Number(o.delivery_charge),
+                        total: Number(o.total),
+                        paymentMethod: o.payment_method,
+                        transactionId: o.transaction_id,
+                        status: o.status,
+                        date: o.created_at,
+                        estimatedDelivery: o.estimated_delivery
+                    }));
+                    setOrders(sbOrders);
+                    console.log('[MyOrders] ✅ Loaded from Supabase:', sbOrders.length);
+                    return;
+                }
+            } catch (err) {
+                console.warn('[MyOrders] Supabase fetch failed, using localStorage');
+            }
+
+            // Fallback: localStorage
             const allOrders = BoltDB.getOrders();
             setOrders(allOrders.filter(o => o.userId === user.id).reverse());
-        }
+        };
+
+        loadOrders();
     }, [user]);
 
     if (!user) return null;
