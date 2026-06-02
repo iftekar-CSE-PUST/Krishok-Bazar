@@ -1,0 +1,1983 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>কৃষি স্টোর | বীজ, সার ও কীটনাশকের বিশ্বস্ত অনলাইন দোকান</title>
+    <meta name="description" content="বাংলাদেশের কৃষকদের জন্য মানসম্মত বীজ, জৈব সার এবং কীটনাশকের নির্ভরযোগ্য অনলাইন স্টোর। ক্যাশ অন ডেলিভারি ও সারা দেশে দ্রুত ডেলিভারি।">
+    <meta name="theme-color" content="#558b2f">
+    <meta property="og:title" content="কৃষি স্টোর | Agri Store">
+    <meta property="og:description" content="মানসম্মত বীজ, জৈব সার ও কীটনাশক — সবই এক ঠিকানায়।">
+    <meta property="og:type" content="website">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        agri: {
+                            50: '#f1f8e9',
+                            100: '#dcedc8',
+                            200: '#c5e1a5',
+                            300: '#aed581',
+                            400: '#9ccc65',
+                            500: '#8bc34a',
+                            600: '#7cb342',
+                            700: '#689f38',
+                            800: '#558b2f',
+                            900: '#33691e',
+                            amber: '#ffb300',
+                            amberDark: '#ff8f00',
+                            cream: '#fcfbf4'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+                        bengali: ['Hind Siliguri', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Google Fonts for Bengali -->
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- React & ReactDOM (Development links for ease of use, normally production) -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- Babel for JSX compilation in browser -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Framer Motion -->
+    <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"></script>
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        body { font-family: 'Hind Siliguri', sans-serif; background-color: #fcfbf4; overflow-x: hidden; }
+        .perspective-1000 { perspective: 1000px; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .glass-panel { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(10px); }
+   
+
+ /* ===== KRISHOK BAZAR PREMIUM LOADER (Imported from first website) ===== */
+ #loading-screen {
+   position: fixed;
+   top: 0;
+   left: 0;
+   width: 100%;
+   height: 100%;
+   background: linear-gradient(135deg, #2d7a2d 0%, #4CAF50 50%, #8bc34a 100%);
+   display: flex;
+   flex-direction: column;
+   align-items: center;
+   justify-content: center;
+   z-index: 99999;
+   transition: opacity 0.55s ease, visibility 0.55s ease;
+ }
+ #loading-screen.loader-hidden {
+   opacity: 0;
+   visibility: hidden;
+   pointer-events: none;
+ }
+ .loading-logo {
+   font-size: clamp(2.1rem, 6vw, 3rem);
+   font-weight: 700;
+   color: white;
+   text-shadow: 0 4px 20px rgba(0,0,0,0.3);
+   animation: pulse 1.5s infinite;
+   letter-spacing: -0.02em;
+ }
+ .loading-subtitle {
+   color: rgba(255,255,255,0.86);
+   margin-top: 10px;
+   font-size: 1.1rem;
+   text-align: center;
+   padding: 0 18px;
+ }
+ .loading-bar {
+   width: min(220px, 58vw);
+   height: 4px;
+   background: rgba(255,255,255,0.3);
+   border-radius: 2px;
+   margin-top: 30px;
+   overflow: hidden;
+ }
+ .loading-progress {
+   height: 100%;
+   background: white;
+   border-radius: 2px;
+   animation: loading 2s ease forwards;
+ }
+ @keyframes loading {
+   from { width: 0; }
+   to { width: 100%; }
+ }
+ @keyframes pulse {
+   0%, 100% { transform: scale(1); }
+   50% { transform: scale(1.05); }
+ }
+
+ </style>
+</head>
+<body>
+   
+ <!-- Loading Screen imported from first website -->
+ <div id="loading-screen" role="status" aria-live="polite" aria-label="ওয়েবসাইট লোড হচ্ছে">
+   <div class="loading-logo">🌿 কৃষক বাজার</div>
+   <div class="loading-subtitle">আপনার বিশ্বস্ত কৃষি পণ্যের দোকান</div>
+   <div class="loading-bar">
+     <div class="loading-progress"></div>
+   </div>
+ </div>
+
+ <div id="root"></div>
+
+    <script type="text/babel">
+       
+
+ // Hide imported loader after the React app and page resources are ready
+ window.addEventListener('load', function () {
+   var loader = document.getElementById('loading-screen');
+   if (!loader) return;
+   setTimeout(function () {
+     loader.classList.add('loader-hidden');
+     setTimeout(function () {
+       if (loader && loader.parentNode) loader.parentNode.removeChild(loader);
+     }, 650);
+   }, 450);
+ });
+
+ const { useState, useEffect, useContext, createContext, useRef, useMemo } = React;
+        const { motion, AnimatePresence, useScroll, useTransform, useInView } = window.Motion;
+
+        // =====================================================
+        // ===  SUPABASE CLIENT INITIALIZATION  ===
+        // =====================================================
+        const SUPABASE_URL = 'https://pfreyhtpjyzvqribughk.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_hAGBxe_XeiWGmEr0Jt6iUQ_MVeVA0Ws';
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // --- Mock Products (local – managed by admin via localStorage) ---
+        const MOCK_PRODUCTS = [
+            { id: 1, name: 'সবুজ সাথী কীটনাশক', category: 'Pesticides', price: 450, oldPrice: 520, unit: '৫০০ মিলি', rating: 4.5, stock: 50, image: 'https://images.unsplash.com/photo-1586771107445-d3ca888129ff?auto=format&fit=crop&w=400&q=80', description: 'উচ্চ ক্ষমতাসম্পন্ন কীটনাশক, ফসলের পোকা দমনে অত্যন্ত কার্যকর।' },
+            { id: 2, name: 'উন্নত ধানের বীজ', category: 'Seeds', price: 1200, oldPrice: 0, unit: '১০ কেজি', rating: 4.8, stock: 100, image: 'https://images.unsplash.com/photo-1586281380349-632531db7ed4?auto=format&fit=crop&w=400&q=80', description: 'উচ্চ ফলনশীল বোরো ধানের বীজ। ভালো অঙ্কুরোদগম হার।' },
+            { id: 3, name: 'জৈব কম্পোস্ট সার', category: 'Fertilizer', price: 300, oldPrice: 350, unit: '২৫ কেজি', rating: 4.6, stock: 200, image: 'https://images.unsplash.com/photo-1628352081506-83c43123ed6d?auto=format&fit=crop&w=400&q=80', description: 'মাটির উর্বরতা বৃদ্ধিতে ১০০% প্রাকৃতিক ও রাসায়নিক মুক্ত সার।' },
+            { id: 4, name: 'লাল তীরের টমেটো বীজ', category: 'Seeds', price: 150, oldPrice: 0, unit: '১০ গ্রাম', rating: 4.4, stock: 80, image: 'https://images.unsplash.com/photo-1592841200221-a6898f307baa?auto=format&fit=crop&w=400&q=80', description: 'হাইব্রিড টমেটো বীজ, প্রতিটি গাছে প্রচুর ফলন।' },
+            { id: 5, name: 'ছত্রাকনাশক প্রোটেক্ট প্লাস', category: 'Pesticides', price: 380, oldPrice: 0, unit: '২৫০ গ্রাম', rating: 4.3, stock: 60, image: 'https://images.unsplash.com/photo-1530507629858-e4977d30e9e0?auto=format&fit=crop&w=400&q=80', description: 'ব্লাস্ট ও পাতা পচা রোগ প্রতিরোধে কার্যকর ছত্রাকনাশক।' },
+            { id: 6, name: 'হাইব্রিড ভুট্টা বীজ', category: 'Seeds', price: 850, oldPrice: 950, unit: '৫ কেজি', rating: 4.7, stock: 70, image: 'https://images.unsplash.com/photo-1551754655-cd27e38d2076?auto=format&fit=crop&w=400&q=80', description: 'উচ্চ ফলনশীল হাইব্রিড ভুট্টা বীজ, খরা সহনশীল।' },
+            { id: 7, name: 'ইউরিয়া সার (প্রিমিয়াম)', category: 'Fertilizer', price: 1100, oldPrice: 0, unit: '৫০ কেজি', rating: 4.5, stock: 150, image: 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?auto=format&fit=crop&w=400&q=80', description: 'উচ্চ মানের নাইট্রোজেন সমৃদ্ধ ইউরিয়া সার, দ্রুত বৃদ্ধির জন্য।' },
+            { id: 8, name: 'মরিচের উন্নত বীজ', category: 'Seeds', price: 220, oldPrice: 280, unit: '২০ গ্রাম', rating: 4.6, stock: 90, image: 'https://images.unsplash.com/photo-1583119022894-919a68a3d0e3?auto=format&fit=crop&w=400&q=80', description: 'ঝাল ও ফলন দুটোই বেশি, রোগ প্রতিরোধী কাঁচা মরিচের বীজ।' },
+            { id: 9, name: 'ভার্মি কম্পোস্ট (কেঁচো সার)', category: 'Fertilizer', price: 260, oldPrice: 0, unit: '১০ কেজি', rating: 4.9, stock: 120, image: 'https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?auto=format&fit=crop&w=400&q=80', description: 'সম্পূর্ণ জৈব কেঁচো সার, সবজি ও ফল চাষে আদর্শ।' },
+            { id: 10, name: 'আগাছানাশক উইড ক্লিন', category: 'Pesticides', price: 520, oldPrice: 0, unit: '১ লিটার', rating: 4.2, stock: 0, image: 'https://images.unsplash.com/photo-1492496913980-501348b61469?auto=format&fit=crop&w=400&q=80', description: 'ক্ষেতের অবাঞ্ছিত আগাছা দূর করতে নিরাপদ ও কার্যকর।' },
+        ];
+
+        // =====================================================
+        // ===  BOLTDB — Now syncs with Supabase  ===
+        // =====================================================
+        const BoltDB = {
+            init: () => {
+                if (!localStorage.getItem('bolt_products')) localStorage.setItem('bolt_products', JSON.stringify(MOCK_PRODUCTS));
+                if (!localStorage.getItem('bolt_orders')) localStorage.setItem('bolt_orders', JSON.stringify([]));
+                if (!localStorage.getItem('bolt_users')) localStorage.setItem('bolt_users', JSON.stringify([]));
+            },
+            getProducts: () => JSON.parse(localStorage.getItem('bolt_products')),
+            saveProduct: (p) => {
+                const products = BoltDB.getProducts();
+                if (p.id) {
+                    const idx = products.findIndex(x => x.id === p.id);
+                    products[idx] = p;
+                } else {
+                    p.id = Date.now();
+                    products.push(p);
+                }
+                localStorage.setItem('bolt_products', JSON.stringify(products));
+            },
+            deleteProduct: (id) => {
+                let products = BoltDB.getProducts();
+                products = products.filter(p => p.id !== id);
+                localStorage.setItem('bolt_products', JSON.stringify(products));
+            },
+
+            // ── Orders: localStorage + Supabase sync ──
+            getOrders: () => JSON.parse(localStorage.getItem('bolt_orders')),
+
+            saveOrder: (order) => {
+                // 1) Build the order locally
+                const orders = BoltDB.getOrders();
+                order.id = 'ORD-' + Math.floor(Math.random() * 1000000);
+                order.date = new Date().toISOString();
+                order.status = 'Pending';
+                const deliveryDate = new Date();
+                deliveryDate.setDate(deliveryDate.getDate() + 5);
+                order.estimatedDelivery = deliveryDate.toISOString();
+
+                orders.push(order);
+                localStorage.setItem('bolt_orders', JSON.stringify(orders));
+
+                // 2) Async push to Supabase (fire-and-forget, localStorage is source of truth)
+                supabaseClient.from('orders').insert({
+                    order_id: order.id,
+                    user_id: String(order.userId || 'guest'),
+                    customer_name: order.customerInfo?.name || '',
+                    customer_phone: order.customerInfo?.phone || '',
+                    customer_address: order.customerInfo?.address || '',
+                    customer_district: order.customerInfo?.district || '',
+                    customer_note: order.customerInfo?.note || '',
+                    items: order.items,
+                    subtotal: order.subtotal,
+                    delivery_charge: order.deliveryCharge,
+                    total: order.total,
+                    payment_method: order.paymentMethod,
+                    transaction_id: order.transactionId || null,
+                    status: order.status,
+                    estimated_delivery: order.estimatedDelivery,
+                    created_at: order.date
+                }).then(({ error }) => {
+                    if (error) console.warn('[Supabase Orders] Insert error:', error.message);
+                    else console.log('[Supabase Orders] ✅ Order synced:', order.id);
+                });
+
+                return order;
+            },
+
+            updateOrderStatus: (id, status) => {
+                const orders = BoltDB.getOrders();
+                const order = orders.find(o => o.id === id);
+                if (order) order.status = status;
+                localStorage.setItem('bolt_orders', JSON.stringify(orders));
+
+                // Sync status update to Supabase
+                supabaseClient.from('orders').update({ status })
+                    .eq('order_id', id)
+                    .then(({ error }) => {
+                        if (error) console.warn('[Supabase Orders] Status update error:', error.message);
+                        else console.log('[Supabase Orders] ✅ Status updated:', id, '->', status);
+                    });
+            },
+
+            // ── Authentication: Supabase Auth + localStorage fallback ──
+            _hash: (str) => {
+                let h = 0x811c9dc5;
+                for (let i = 0; i < str.length; i++) {
+                    h ^= str.charCodeAt(i);
+                    h = Math.imul(h, 0x01000193);
+                }
+                return ('00000000' + (h >>> 0).toString(16)).slice(-8) + str.length.toString(16);
+            },
+
+            login: async (email, password) => {
+                const e = (email || '').trim();
+
+                // Admin credentials (hashed, obfuscated — static-site only)
+                const ADMIN_EMAIL_HASH = '34c836145';
+                const ADMIN_PASS_HASH = '20dcd320a';
+                if (BoltDB._hash(e) === ADMIN_EMAIL_HASH && BoltDB._hash(password) === ADMIN_PASS_HASH) {
+                    return { id: 1, role: 'admin', name: 'Admin Riad' };
+                }
+
+                // Try Supabase Auth first
+                try {
+                    const { data, error } = await supabaseClient.auth.signInWithPassword({
+                        email: e,
+                        password: password
+                    });
+                    if (!error && data?.user) {
+                        const name = data.user.user_metadata?.name || data.user.email?.split('@')[0] || 'User';
+                        console.log('[Supabase Auth] ✅ Login success:', data.user.email);
+                        return { id: data.user.id, name, email: data.user.email, role: 'user', supabase: true };
+                    }
+                } catch (sbErr) {
+                    console.warn('[Supabase Auth] Login attempt failed, falling back to localStorage:', sbErr.message);
+                }
+
+                // Fallback to localStorage users
+                const users = JSON.parse(localStorage.getItem('bolt_users'));
+                const user = users.find(u => u.email === e && u.password === BoltDB._hash(password));
+                if (user) return { id: user.id, name: user.name, email: user.email, role: 'user' };
+
+                throw new Error('ভুল ইমেইল বা পাসওয়ার্ড / Invalid credentials');
+            },
+
+            register: async (name, email, password) => {
+                const e = (email || '').trim();
+                if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)) throw new Error('সঠিক ইমেইল দিন / Enter a valid email');
+                if ((password || '').length < 6) throw new Error('পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে / Password must be at least 6 characters');
+
+                // Try Supabase Auth signup
+                try {
+                    const { data, error } = await supabaseClient.auth.signUp({
+                        email: e,
+                        password: password,
+                        options: { data: { name: name } }
+                    });
+                    if (!error && data?.user) {
+                        console.log('[Supabase Auth] ✅ Registration success:', data.user.email);
+
+                        // Also save profile to 'users' table
+                        supabaseClient.from('users').insert({
+                            auth_id: data.user.id,
+                            name: name,
+                            email: e,
+                            registered_at: new Date().toISOString()
+                        }).then(({ error: pErr }) => {
+                            if (pErr) console.warn('[Supabase Users] Profile insert error:', pErr.message);
+                            else console.log('[Supabase Users] ✅ Profile saved');
+                        });
+
+                        return { id: data.user.id, role: 'user', name, email: e, supabase: true };
+                    }
+                    if (error) {
+                        console.warn('[Supabase Auth] Signup error:', error.message);
+                        // If it's a duplicate email error from Supabase
+                        if (error.message.includes('already') || error.message.includes('exists')) {
+                            throw new Error('এই ইমেইলটি ব্যবহার করা হয়েছে / Email already exists');
+                        }
+                    }
+                } catch (sbErr) {
+                    if (sbErr.message.includes('ইমেইল') || sbErr.message.includes('Email')) throw sbErr;
+                    console.warn('[Supabase Auth] Signup failed, falling back to localStorage:', sbErr.message);
+                }
+
+                // Fallback: localStorage registration
+                const users = JSON.parse(localStorage.getItem('bolt_users'));
+                if (users.find(u => u.email === e)) throw new Error('এই ইমেইলটি ব্যবহার করা হয়েছে / Email already exists');
+                const newUser = { id: Date.now(), name, email: e, password: BoltDB._hash(password), registeredAt: new Date().toISOString() };
+                users.push(newUser);
+                localStorage.setItem('bolt_users', JSON.stringify(users));
+                return { id: newUser.id, role: 'user', name, email: e };
+            },
+
+            getUsers: () => JSON.parse(localStorage.getItem('bolt_users'))
+        };
+        BoltDB.init();
+
+        // --- App Context ---
+        const AppContext = createContext();
+
+        const DELIVERY_CHARGE = 60;
+        const FREE_DELIVERY_THRESHOLD = 2000;
+
+        const AppProvider = ({ children }) => {
+            const [route, setRoute] = useState({ page: 'Home', params: {} });
+            const [user, setUser] = useState(() => {
+                try { return JSON.parse(localStorage.getItem('bolt_session')) || null; } catch { return null; }
+            });
+            const [cart, setCart] = useState(() => {
+                try { return JSON.parse(localStorage.getItem('bolt_cart')) || []; } catch { return []; }
+            });
+            const [wishlist, setWishlist] = useState(() => {
+                try { return JSON.parse(localStorage.getItem('bolt_wishlist')) || []; } catch { return []; }
+            });
+            const [isCartOpen, setIsCartOpen] = useState(false);
+            const [products, setProducts] = useState(BoltDB.getProducts());
+            const [toasts, setToasts] = useState([]);
+
+            // Persist session, cart and wishlist
+            useEffect(() => { localStorage.setItem('bolt_session', JSON.stringify(user)); }, [user]);
+            useEffect(() => { localStorage.setItem('bolt_cart', JSON.stringify(cart)); }, [cart]);
+            useEffect(() => { localStorage.setItem('bolt_wishlist', JSON.stringify(wishlist)); }, [wishlist]);
+            // Scroll to top on navigation
+            useEffect(() => { window.scrollTo({ top: 0, behavior: 'smooth' }); }, [route]);
+
+            const navigate = (page, params = {}) => setRoute({ page, params });
+
+            const refreshProducts = () => setProducts(BoltDB.getProducts());
+
+            const notify = (message, type = 'success') => {
+                const id = Date.now() + Math.random();
+                setToasts(prev => [...prev, { id, message, type }]);
+                setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 3000);
+            };
+
+            const addToCart = (product, quantity = 1) => {
+                setCart(prev => {
+                    const existing = prev.find(item => item.id === product.id);
+                    if (existing) {
+                        return prev.map(item => item.id === product.id ? { ...item, quantity: item.quantity + quantity } : item);
+                    }
+                    return [...prev, { ...product, quantity }];
+                });
+                notify(`${product.name} কার্টে যোগ হয়েছে`, 'success');
+                setIsCartOpen(true);
+            };
+
+            const updateCartQuantity = (id, delta) => {
+                setCart(prev => prev.map(item => {
+                    if (item.id === id) {
+                        const newQ = item.quantity + delta;
+                        return newQ > 0 ? { ...item, quantity: newQ } : item;
+                    }
+                    return item;
+                }));
+            };
+
+            const removeFromCart = (id) => setCart(prev => prev.filter(item => item.id !== id));
+            const clearCart = () => setCart([]);
+
+            const toggleWishlist = (product) => {
+                setWishlist(prev => {
+                    if (prev.find(p => p.id === product.id)) {
+                        notify('উইশলিস্ট থেকে সরানো হয়েছে', 'info');
+                        return prev.filter(p => p.id !== product.id);
+                    }
+                    notify('উইশলিস্টে যোগ হয়েছে ❤️', 'success');
+                    return [...prev, product];
+                });
+            };
+            const isWishlisted = (id) => wishlist.some(p => p.id === id);
+
+            const cartTotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+            const deliveryCharge = cart.length === 0 || cartTotal >= FREE_DELIVERY_THRESHOLD ? 0 : DELIVERY_CHARGE;
+            const grandTotal = cartTotal + deliveryCharge;
+
+            return (
+                <AppContext.Provider value={{ route, navigate, user, setUser, cart, addToCart, updateCartQuantity, removeFromCart, clearCart, cartTotal, cartCount, deliveryCharge, grandTotal, isCartOpen, setIsCartOpen, products, refreshProducts, wishlist, toggleWishlist, isWishlisted, notify, toasts }}>
+                    {children}
+                    <ToastContainer toasts={toasts} />
+                </AppContext.Provider>
+            );
+        };
+
+        // --- Toast notifications ---
+        const ToastContainer = ({ toasts }) => (
+            <div className="fixed bottom-5 right-5 z-[100] space-y-2 w-72 max-w-[90vw]">
+                <AnimatePresence>
+                    {toasts.map(t => (
+                        <motion.div key={t.id}
+                            initial={{ opacity: 0, x: 60, scale: 0.9 }}
+                            animate={{ opacity: 1, x: 0, scale: 1 }}
+                            exit={{ opacity: 0, x: 60, scale: 0.9 }}
+                            className={`flex items-center gap-3 p-3 rounded-lg shadow-lg text-white text-sm font-semibold ${t.type === 'success' ? 'bg-agri-600' : t.type === 'error' ? 'bg-red-500' : 'bg-gray-800'}`}>
+                            <i className={`fa-solid ${t.type === 'success' ? 'fa-circle-check' : t.type === 'error' ? 'fa-circle-exclamation' : 'fa-circle-info'} text-lg`}></i>
+                            <span>{t.message}</span>
+                        </motion.div>
+                    ))}
+                </AnimatePresence>
+            </div>
+        );
+
+        // --- Star rating display ---
+        const Stars = ({ rating = 0, size = 'text-sm' }) => {
+            const full = Math.floor(rating);
+            const half = rating - full >= 0.5;
+            return (
+                <span className={`text-agri-amber ${size}`}>
+                    {[1,2,3,4,5].map(i => {
+                        if (i <= full) return <i key={i} className="fa-solid fa-star"></i>;
+                        if (i === full + 1 && half) return <i key={i} className="fa-solid fa-star-half-stroke"></i>;
+                        return <i key={i} className="fa-regular fa-star"></i>;
+                    })}
+                </span>
+            );
+        };
+
+        // --- Reusable UI Components ---
+        const Navbar = () => {
+            const { navigate, cartCount, setIsCartOpen, user, setUser, wishlist, notify } = useContext(AppContext);
+            const [mobileMenu, setMobileMenu] = useState(false);
+            const [query, setQuery] = useState('');
+            const [userMenu, setUserMenu] = useState(false);
+
+            const submitSearch = (e) => {
+                e.preventDefault();
+                if (query.trim()) { navigate('Search', { q: query.trim() }); setMobileMenu(false); }
+            };
+            const logout = () => { supabaseClient.auth.signOut().catch(() => {}); setUser(null); setUserMenu(false); notify('লগআউট হয়েছে', 'info'); navigate('Home'); };
+
+            return (
+                <nav className="sticky top-0 z-50 glass-panel shadow-sm border-b border-agri-200">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                        <div className="flex justify-between items-center h-16 gap-4">
+                            <div className="flex items-center cursor-pointer shrink-0" onClick={() => navigate('Home')}>
+                                <i className="fa-solid fa-leaf text-agri-600 text-2xl mr-2"></i>
+                                <span className="font-bold text-xl sm:text-2xl text-agri-800">কৃষি স্টোর</span>
+                            </div>
+
+                            {/* Search bar (desktop) */}
+                            <form onSubmit={submitSearch} className="hidden md:flex flex-1 max-w-md mx-2">
+                                <div className="relative w-full">
+                                    <input value={query} onChange={e => setQuery(e.target.value)} type="text" placeholder="পণ্য খুঁজুন..." className="w-full pl-4 pr-10 py-2 rounded-full border border-agri-200 bg-white focus:outline-none focus:ring-2 focus:ring-agri-400 text-sm" />
+                                    <button type="submit" className="absolute right-1 top-1/2 -translate-y-1/2 bg-agri-600 hover:bg-agri-700 text-white w-8 h-8 rounded-full flex items-center justify-center"><i className="fa-solid fa-magnifying-glass text-xs"></i></button>
+                                </div>
+                            </form>
+
+                            {/* Desktop Menu */}
+                            <div className="hidden lg:flex space-x-5 items-center shrink-0">
+                                <button onClick={() => navigate('Home')} className="text-gray-700 hover:text-agri-600 font-semibold transition">হোম</button>
+                                <button onClick={() => navigate('Category', { cat: 'Pesticides' })} className="text-gray-700 hover:text-agri-600 font-semibold transition">কীটনাশক</button>
+                                <button onClick={() => navigate('Category', { cat: 'Seeds' })} className="text-gray-700 hover:text-agri-600 font-semibold transition">বীজ</button>
+                                <button onClick={() => navigate('Category', { cat: 'Fertilizer' })} className="text-gray-700 hover:text-agri-600 font-semibold transition">জৈব সার</button>
+                                <button onClick={() => navigate('MyOrders')} className="text-gray-700 hover:text-agri-600 font-semibold transition">আমার অর্ডার</button>
+                            </div>
+
+                            <div className="flex items-center space-x-1 sm:space-x-3 shrink-0">
+                                <button onClick={() => navigate('Wishlist')} className="relative text-gray-700 hover:text-red-500 transition p-2" title="উইশলিস্ট">
+                                    <i className="fa-solid fa-heart text-xl"></i>
+                                    {wishlist.length > 0 && (
+                                        <span className="absolute top-0 right-0 inline-flex items-center justify-center px-1.5 py-0.5 text-[10px] font-bold leading-none text-white transform translate-x-1/4 -translate-y-1/4 bg-red-500 rounded-full">{wishlist.length}</span>
+                                    )}
+                                </button>
+                                <button onClick={() => setIsCartOpen(true)} className="relative text-gray-700 hover:text-agri-600 transition p-2" title="কার্ট">
+                                    <i className="fa-solid fa-cart-shopping text-xl"></i>
+                                    {cartCount > 0 && (
+                                        <span className="absolute top-0 right-0 inline-flex items-center justify-center px-1.5 py-0.5 text-[10px] font-bold leading-none text-white transform translate-x-1/4 -translate-y-1/4 bg-agri-amber rounded-full">{cartCount}</span>
+                                    )}
+                                </button>
+
+                                {user ? (
+                                    <div className="relative">
+                                        <button onClick={() => setUserMenu(m => !m)} className="flex items-center text-gray-700 hover:text-agri-600 p-2">
+                                            <i className="fa-solid fa-user-circle text-2xl"></i>
+                                        </button>
+                                        {userMenu && (
+                                            <>
+                                                <div className="fixed inset-0 z-10" onClick={() => setUserMenu(false)}></div>
+                                                <div className="absolute right-0 mt-2 w-52 bg-white rounded-lg shadow-xl border border-gray-100 py-2 z-20">
+                                                    <div className="px-4 py-2 border-b border-gray-100">
+                                                        <p className="font-bold text-gray-800 truncate">{user.name}</p>
+                                                        <p className="text-xs text-gray-500">{user.role === 'admin' ? 'অ্যাডমিন' : 'কাস্টমার'}</p>
+                                                    </div>
+                                                    <button onClick={() => { user.role === 'admin' ? navigate('Admin') : navigate('Profile'); setUserMenu(false); }} className="w-full text-left px-4 py-2 hover:bg-agri-50 text-gray-700"><i className="fa-solid fa-gauge mr-2 text-agri-600"></i>{user.role === 'admin' ? 'ড্যাশবোর্ড' : 'আমার প্রোফাইল'}</button>
+                                                    <button onClick={() => { navigate('Wishlist'); setUserMenu(false); }} className="w-full text-left px-4 py-2 hover:bg-agri-50 text-gray-700"><i className="fa-solid fa-heart mr-2 text-red-400"></i>উইশলিস্ট</button>
+                                                    <button onClick={logout} className="w-full text-left px-4 py-2 hover:bg-red-50 text-red-600"><i className="fa-solid fa-sign-out-alt mr-2"></i>লগআউট</button>
+                                                </div>
+                                            </>
+                                        )}
+                                    </div>
+                                ) : (
+                                    <button onClick={() => navigate('Auth')} className="bg-agri-600 text-white px-3 sm:px-4 py-2 rounded-lg font-medium hover:bg-agri-700 transition shadow-md text-sm">লগইন</button>
+                                )}
+
+                                <button className="lg:hidden text-gray-700 p-2" onClick={() => setMobileMenu(!mobileMenu)}>
+                                    <i className="fa-solid fa-bars text-xl"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Search bar (mobile) */}
+                        <form onSubmit={submitSearch} className="md:hidden pb-3">
+                            <div className="relative w-full">
+                                <input value={query} onChange={e => setQuery(e.target.value)} type="text" placeholder="পণ্য খুঁজুন..." className="w-full pl-4 pr-10 py-2 rounded-full border border-agri-200 bg-white focus:outline-none focus:ring-2 focus:ring-agri-400 text-sm" />
+                                <button type="submit" className="absolute right-1 top-1/2 -translate-y-1/2 bg-agri-600 text-white w-8 h-8 rounded-full flex items-center justify-center"><i className="fa-solid fa-magnifying-glass text-xs"></i></button>
+                            </div>
+                        </form>
+                    </div>
+
+                    {/* Mobile Menu */}
+                    {mobileMenu && (
+                        <div className="lg:hidden bg-white border-t border-agri-100 px-4 pt-2 pb-4 space-y-2">
+                            <button onClick={() => { navigate('Home'); setMobileMenu(false); }} className="block w-full text-left py-2 text-gray-700">হোম</button>
+                            <button onClick={() => { navigate('Category', { cat: 'Pesticides' }); setMobileMenu(false); }} className="block w-full text-left py-2 text-gray-700">কীটনাশক</button>
+                            <button onClick={() => { navigate('Category', { cat: 'Seeds' }); setMobileMenu(false); }} className="block w-full text-left py-2 text-gray-700">বীজ</button>
+                            <button onClick={() => { navigate('Category', { cat: 'Fertilizer' }); setMobileMenu(false); }} className="block w-full text-left py-2 text-gray-700">জৈব সার</button>
+                            <button onClick={() => { navigate('MyOrders'); setMobileMenu(false); }} className="block w-full text-left py-2 text-gray-700">আমার অর্ডার</button>
+                            <button onClick={() => { navigate('Wishlist'); setMobileMenu(false); }} className="block w-full text-left py-2 text-gray-700">উইশলিস্ট</button>
+                            {user && <button onClick={() => { user.role === 'admin' ? navigate('Admin') : navigate('Profile'); setMobileMenu(false); }} className="block w-full text-left py-2 text-gray-700">প্রোফাইল / ড্যাশবোর্ড</button>}
+                            {user && <button onClick={logout} className="block w-full text-left py-2 text-red-600">লগআউট</button>}
+                        </div>
+                    )}
+                </nav>
+            );
+        };
+
+        const Footer = () => {
+            const { navigate } = useContext(AppContext);
+            return (
+            <footer className="bg-agri-900 text-agri-50 pt-12 pb-6 mt-16">
+                <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-8">
+                    <div className="md:col-span-1">
+                        <h3 className="text-xl font-bold mb-4 flex items-center"><i className="fa-solid fa-leaf mr-2"></i> কৃষি স্টোর</h3>
+                        <p className="text-agri-200 text-sm leading-relaxed">বাংলাদেশের কৃষকদের জন্য নির্ভরযোগ্য অনলাইন স্টোর। আমরা মানসম্মত বীজ, কীটনাশক এবং জৈব সার সরবরাহ করি।</p>
+                        <div className="flex gap-3 mt-4">
+                            {[['fa-facebook-f','https://facebook.com'],['fa-whatsapp','https://wa.me/8801900000000'],['fa-youtube','https://youtube.com']].map(([ic,href]) => (
+                                <a key={ic} href={href} target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-full bg-agri-800 hover:bg-agri-amber flex items-center justify-center transition"><i className={`fa-brands ${ic}`}></i></a>
+                            ))}
+                        </div>
+                    </div>
+                    <div>
+                        <h3 className="text-lg font-bold mb-4 text-agri-amber">ক্যাটাগরি</h3>
+                        <ul className="space-y-2 text-agri-200 text-sm">
+                            <li><button onClick={() => navigate('Category', { cat: 'Pesticides' })} className="hover:text-white transition">কীটনাশক</button></li>
+                            <li><button onClick={() => navigate('Category', { cat: 'Seeds' })} className="hover:text-white transition">বীজ</button></li>
+                            <li><button onClick={() => navigate('Category', { cat: 'Fertilizer' })} className="hover:text-white transition">জৈব সার</button></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3 className="text-lg font-bold mb-4 text-agri-amber">দ্রুত লিংক</h3>
+                        <ul className="space-y-2 text-agri-200 text-sm">
+                            <li><button onClick={() => navigate('Home')} className="hover:text-white transition">হোম</button></li>
+                            <li><button onClick={() => navigate('Wishlist')} className="hover:text-white transition">উইশলিস্ট</button></li>
+                            <li><button onClick={() => navigate('Auth')} className="hover:text-white transition">লগইন / রেজিস্টার</button></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3 className="text-lg font-bold mb-4 text-agri-amber">যোগাযোগ</h3>
+                        <ul className="space-y-2 text-agri-200 text-sm">
+                            <li><i className="fa-solid fa-phone mr-2"></i> ০১৯০০-০০০০০০</li>
+                            <li><i className="fa-solid fa-envelope mr-2"></i> info@agristore.com.bd</li>
+                            <li><i className="fa-solid fa-location-dot mr-2"></i> ঢাকা, বাংলাদেশ</li>
+                        </ul>
+                    </div>
+                </div>
+                <div className="text-center text-agri-400 mt-10 pt-4 border-t border-agri-800 text-sm">
+                    &copy; ২০২৬ কৃষি স্টোর। সর্বস্বত্ব সংরক্ষিত।
+                </div>
+            </footer>
+            );
+        };
+
+        // 3D Product Card using Framer Motion
+        const ProductCard = ({ product }) => {
+            const { navigate, addToCart, toggleWishlist, isWishlisted } = useContext(AppContext);
+            const ref = useRef(null);
+            const isInView = useInView(ref, { once: true, margin: "-50px" });
+            const hasDiscount = product.oldPrice && product.oldPrice > product.price;
+            const discountPct = hasDiscount ? Math.round((1 - product.price / product.oldPrice) * 100) : 0;
+
+            return (
+                <motion.div 
+                    ref={ref}
+                    initial={{ opacity: 0, y: 50, rotateX: 15 }}
+                    animate={isInView ? { opacity: 1, y: 0, rotateX: 0 } : {}}
+                    transition={{ duration: 0.6, ease: "easeOut" }}
+                    className="perspective-1000 w-full"
+                >
+                    <motion.div 
+                        whileHover={{ rotateX: 5, rotateY: -5, scale: 1.03, boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)" }}
+                        transition={{ type: "spring", stiffness: 300 }}
+                        className="bg-white rounded-xl shadow-lg overflow-hidden flex flex-col h-full border border-agri-100 transform-gpu cursor-pointer"
+                        onClick={() => navigate('ProductDetail', { id: product.id })}
+                    >
+                        <div className="h-48 overflow-hidden bg-agri-50 relative">
+                            <motion.img 
+                                whileHover={{ scale: 1.1 }}
+                                transition={{ duration: 0.4 }}
+                                src={product.image} 
+                                alt={product.name} 
+                                loading="lazy"
+                                className="w-full h-full object-cover" 
+                            />
+                            {discountPct > 0 && (
+                                <div className="absolute top-2 left-2 bg-agri-amber text-white text-xs font-bold px-2 py-1 rounded shadow">-{discountPct}%</div>
+                            )}
+                            {product.stock <= 0 && (
+                                <div className="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">স্টক নেই</div>
+                            )}
+                            <button
+                                onClick={(e) => { e.stopPropagation(); toggleWishlist(product); }}
+                                className={`absolute bottom-2 right-2 w-9 h-9 rounded-full flex items-center justify-center shadow-md transition ${isWishlisted(product.id) ? 'bg-red-500 text-white' : 'bg-white/90 text-gray-500 hover:text-red-500'}`}
+                                title="উইশলিস্ট"
+                            >
+                                <i className="fa-solid fa-heart"></i>
+                            </button>
+                        </div>
+                        <div className="p-5 flex-grow flex flex-col justify-between">
+                            <div>
+                                <h3 className="text-lg font-bold text-gray-800 mb-1 line-clamp-2">{product.name}</h3>
+                                <div className="flex items-center gap-2 mb-2 text-xs text-gray-500">
+                                    <Stars rating={product.rating || 0} />
+                                    <span>({(product.rating || 0).toFixed(1)})</span>
+                                    {product.unit && <span className="ml-auto bg-agri-50 text-agri-700 px-2 py-0.5 rounded">{product.unit}</span>}
+                                </div>
+                                <div className="flex items-baseline gap-2 mb-3">
+                                    <span className="text-agri-700 font-bold text-lg">{product.price} ৳</span>
+                                    {discountPct > 0 && <span className="text-gray-400 line-through text-sm">{product.oldPrice} ৳</span>}
+                                </div>
+                            </div>
+                            <button 
+                                onClick={(e) => { e.stopPropagation(); addToCart(product); }}
+                                disabled={product.stock <= 0}
+                                className={`w-full py-2 rounded-lg font-semibold transition flex items-center justify-center ${product.stock > 0 ? 'bg-agri-100 text-agri-800 hover:bg-agri-500 hover:text-white' : 'bg-gray-200 text-gray-500 cursor-not-allowed'}`}
+                            >
+                                <i className="fa-solid fa-cart-plus mr-2"></i> {product.stock > 0 ? 'কার্টে যোগ করুন' : 'স্টক নেই'}
+                            </button>
+                        </div>
+                    </motion.div>
+                </motion.div>
+            );
+        };
+
+        const CategorySection = ({ title, filterCat }) => {
+            const { products, navigate } = useContext(AppContext);
+            const filtered = products.filter(p => p.category === filterCat).slice(0, 4);
+            
+            if (filtered.length === 0) return null;
+
+            return (
+                <section className="py-12 max-w-7xl mx-auto px-4">
+                    <div className="flex justify-between items-center mb-8">
+                        <h2 className="text-3xl font-bold text-agri-900 border-l-4 border-agri-amber pl-3">{title}</h2>
+                        <button onClick={() => navigate('Category', { cat: filterCat })} className="text-agri-600 hover:text-agri-800 font-semibold text-sm whitespace-nowrap">সব দেখুন <i className="fa-solid fa-arrow-right ml-1"></i></button>
+                    </div>
+                    <motion.div 
+                        variants={{ hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.1 } } }}
+                        initial="hidden"
+                        whileInView="show"
+                        viewport={{ once: true }}
+                        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
+                    >
+                        {filtered.map(product => (
+                            <ProductCard key={product.id} product={product} />
+                        ))}
+                    </motion.div>
+                </section>
+            );
+        };
+
+        const CartDrawer = () => {
+            const { isCartOpen, setIsCartOpen, cart, updateCartQuantity, removeFromCart, cartTotal, deliveryCharge, grandTotal, navigate } = useContext(AppContext);
+            const remainingForFree = Math.max(0, FREE_DELIVERY_THRESHOLD - cartTotal);
+
+            return (
+                <AnimatePresence>
+                    {isCartOpen && (
+                        <>
+                            <motion.div 
+                                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                                className="fixed inset-0 bg-black bg-opacity-50 z-50"
+                                onClick={() => setIsCartOpen(false)}
+                            />
+                            <motion.div 
+                                initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }} transition={{ type: 'spring', damping: 25 }}
+                                className="fixed top-0 right-0 w-full sm:w-96 h-full bg-white shadow-2xl z-50 flex flex-col"
+                            >
+                                <div className="p-4 bg-agri-600 text-white flex justify-between items-center">
+                                    <h2 className="text-xl font-bold"><i className="fa-solid fa-basket-shopping mr-2"></i> আপনার কার্ট</h2>
+                                    <button onClick={() => setIsCartOpen(false)} className="text-white hover:text-agri-100 text-2xl">&times;</button>
+                                </div>
+                                
+                                <div className="flex-grow overflow-y-auto p-4 space-y-4">
+                                    {cart.length === 0 ? (
+                                        <div className="text-center text-gray-500 mt-10">
+                                            <i className="fa-solid fa-box-open text-4xl mb-4 opacity-50"></i>
+                                            <p>কার্ট খালি আছে!</p>
+                                        </div>
+                                    ) : (
+                                        cart.map(item => (
+                                            <div key={item.id} className="flex gap-4 border-b border-gray-100 pb-4">
+                                                <img src={item.image} alt={item.name} className="w-20 h-20 object-cover rounded" />
+                                                <div className="flex-grow">
+                                                    <h4 className="font-bold text-gray-800 line-clamp-1">{item.name}</h4>
+                                                    <p className="text-agri-600">{item.price} ৳</p>
+                                                    <div className="flex items-center mt-2 space-x-2">
+                                                        <button onClick={() => updateCartQuantity(item.id, -1)} className="w-8 h-8 rounded bg-gray-100 hover:bg-gray-200 flex items-center justify-center">-</button>
+                                                        <span className="font-medium">{item.quantity}</span>
+                                                        <button onClick={() => updateCartQuantity(item.id, 1)} className="w-8 h-8 rounded bg-gray-100 hover:bg-gray-200 flex items-center justify-center">+</button>
+                                                    </div>
+                                                </div>
+                                                <button onClick={() => removeFromCart(item.id)} className="text-red-500 hover:text-red-700 self-start p-2">
+                                                    <i className="fa-solid fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+
+                                <div className="p-4 border-t border-gray-200 bg-gray-50">
+                                    {cart.length > 0 && remainingForFree > 0 && (
+                                        <div className="mb-3 text-xs text-gray-600 bg-agri-50 rounded-lg p-2 text-center">
+                                            আর <span className="font-bold text-agri-700">{remainingForFree} ৳</span> কিনলে ফ্রি ডেলিভারি! 🚚
+                                        </div>
+                                    )}
+                                    <div className="space-y-1 mb-3 text-sm">
+                                        <div className="flex justify-between"><span className="text-gray-600">সাবটোটাল:</span><span>{cartTotal} ৳</span></div>
+                                        <div className="flex justify-between"><span className="text-gray-600">ডেলিভারি চার্জ:</span><span>{deliveryCharge === 0 ? <span className="text-agri-600 font-semibold">ফ্রি</span> : `${deliveryCharge} ৳`}</span></div>
+                                    </div>
+                                    <div className="flex justify-between items-center mb-4 text-lg font-bold border-t border-gray-200 pt-2">
+                                        <span>সর্বমোট:</span>
+                                        <span className="text-agri-700">{grandTotal} ৳</span>
+                                    </div>
+                                    <button 
+                                        disabled={cart.length === 0}
+                                        onClick={() => { setIsCartOpen(false); navigate('Checkout'); }}
+                                        className="w-full bg-agri-amber hover:bg-agri-amberDark text-white font-bold py-3 rounded-lg shadow-md transition disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        চেকআউট করুন
+                                    </button>
+                                </div>
+                            </motion.div>
+                        </>
+                    )}
+                </AnimatePresence>
+            );
+        };
+
+        // --- Pages ---
+        const HeroSection = () => {
+            const { scrollY } = useScroll();
+            const y1 = useTransform(scrollY, [0, 500], [0, 150]);
+            const y2 = useTransform(scrollY, [0, 500], [0, -100]);
+            const opacity = useTransform(scrollY, [0, 300], [1, 0]);
+
+            return (
+                <div className="relative h-[60vh] sm:h-[80vh] flex items-center justify-center overflow-hidden bg-agri-800 text-white">
+                    {/* Parallax Background */}
+                    <motion.div style={{ y: y1, opacity }} className="absolute inset-0 z-0">
+                        <img src="data:image/jpeg;base64,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" alt="ধানক্ষেতে কৃষি পণ্যের হিরো ছবি" className="w-full h-full object-cover opacity-40" style={{ objectPosition: 'center' }} />
+                    </motion.div>
+                    
+                    <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
+                        <motion.h1 
+                            initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.8 }}
+                            className="text-4xl sm:text-6xl font-bold mb-6 drop-shadow-lg text-agri-50"
+                        >
+                            কৃষির আধুনিকায়নে <span className="text-agri-amber">আপনার বিশ্বস্ত সঙ্গী</span>
+                        </motion.h1>
+                        <motion.p 
+                            initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.8, delay: 0.2 }}
+                            className="text-lg sm:text-2xl mb-8 text-agri-100"
+                        >
+                            সঠিক বীজ, মানসম্মত সার এবং কার্যকরী কীটনাশক - সবই এখন এক ঠিকানায়।
+                        </motion.p>
+                        <motion.button 
+                            initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.5, delay: 0.4 }}
+                            whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+                            onClick={() => document.getElementById('products-section').scrollIntoView({ behavior: 'smooth' })}
+                            className="bg-agri-amber hover:bg-agri-amberDark text-white px-8 py-3 rounded-full font-bold text-lg shadow-lg transition"
+                        >
+                            পণ্যগুলো দেখুন <i className="fa-solid fa-arrow-down ml-2"></i>
+                        </motion.button>
+                    </div>
+
+                    {/* Floating elements */}
+                    <motion.div 
+                        animate={{ y: [0, -20, 0] }} transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
+                        style={{ y: y2 }}
+                        className="absolute right-[10%] bottom-[20%] hidden lg:block z-0 opacity-80"
+                    >
+                        <i className="fa-brands fa-pagelines text-8xl text-agri-300"></i>
+                    </motion.div>
+                </div>
+            );
+        };
+
+        const FeaturesBar = () => (
+            <div className="bg-white border-b border-agri-100">
+                <div className="max-w-7xl mx-auto px-4 py-6 grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                    {[
+                        { icon: 'fa-truck-fast', title: 'দ্রুত ডেলিভারি', sub: 'সারা দেশে' },
+                        { icon: 'fa-money-bill-wave', title: 'ক্যাশ অন ডেলিভারি', sub: 'হাতে পেয়ে পেমেন্ট' },
+                        { icon: 'fa-seedling', title: '১০০% খাঁটি পণ্য', sub: 'মান নিশ্চয়তা' },
+                        { icon: 'fa-headset', title: '২৪/৭ সাপোর্ট', sub: 'যেকোনো সাহায্যে' },
+                    ].map((f, i) => (
+                        <div key={i} className="flex flex-col items-center">
+                            <div className="w-12 h-12 rounded-full bg-agri-50 text-agri-600 flex items-center justify-center mb-2"><i className={`fa-solid ${f.icon} text-xl`}></i></div>
+                            <h4 className="font-bold text-gray-800 text-sm">{f.title}</h4>
+                            <p className="text-xs text-gray-500">{f.sub}</p>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
+
+        const CategoryCards = () => {
+            const { navigate } = useContext(AppContext);
+            const cats = [
+                { id: 'Pesticides', name: 'কীটনাশক', icon: 'fa-spray-can-sparkles', img: 'https://images.unsplash.com/photo-1530507629858-e4977d30e9e0?auto=format&fit=crop&w=600&q=80' },
+                { id: 'Seeds', name: 'বীজ', icon: 'fa-wheat-awn', img: 'https://images.unsplash.com/photo-1586281380349-632531db7ed4?auto=format&fit=crop&w=600&q=80' },
+                { id: 'Fertilizer', name: 'জৈব সার', icon: 'fa-leaf', img: 'https://images.unsplash.com/photo-1628352081506-83c43123ed6d?auto=format&fit=crop&w=600&q=80' },
+            ];
+            return (
+                <section className="max-w-7xl mx-auto px-4 py-12">
+                    <h2 className="text-3xl font-bold text-agri-900 text-center mb-8">আমাদের ক্যাটাগরি</h2>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                        {cats.map(c => (
+                            <motion.div key={c.id} whileHover={{ y: -6 }} onClick={() => navigate('Category', { cat: c.id })}
+                                className="relative h-44 rounded-2xl overflow-hidden cursor-pointer shadow-lg group">
+                                <img src={c.img} alt={c.name} loading="lazy" className="w-full h-full object-cover group-hover:scale-110 transition duration-500" />
+                                <div className="absolute inset-0 bg-gradient-to-t from-agri-900/80 to-transparent flex flex-col justify-end p-5 text-white">
+                                    <i className={`fa-solid ${c.icon} text-2xl mb-1`}></i>
+                                    <h3 className="text-2xl font-bold">{c.name}</h3>
+                                    <span className="text-sm text-agri-100">এখনই দেখুন <i className="fa-solid fa-arrow-right ml-1"></i></span>
+                                </div>
+                            </motion.div>
+                        ))}
+                    </div>
+                </section>
+            );
+        };
+
+        const Newsletter = () => {
+            const { notify } = useContext(AppContext);
+            const [email, setEmail] = useState('');
+            const submit = (e) => {
+                e.preventDefault();
+                if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { notify('সঠিক ইমেইল দিন', 'error'); return; }
+                notify('সাবস্ক্রাইব করার জন্য ধন্যবাদ!', 'success');
+                setEmail('');
+            };
+            return (
+                <section className="bg-agri-700 text-white py-12">
+                    <div className="max-w-3xl mx-auto px-4 text-center">
+                        <h2 className="text-2xl md:text-3xl font-bold mb-2">নতুন অফার ও কৃষি টিপস পেতে সাবস্ক্রাইব করুন</h2>
+                        <p className="text-agri-100 mb-6">আপনার ইনবক্সে সরাসরি সর্বশেষ আপডেট</p>
+                        <form onSubmit={submit} className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+                            <input value={email} onChange={e => setEmail(e.target.value)} type="email" placeholder="আপনার ইমেইল" className="flex-grow px-4 py-3 rounded-lg text-gray-800 focus:outline-none" />
+                            <button type="submit" className="bg-agri-amber hover:bg-agri-amberDark px-6 py-3 rounded-lg font-bold transition">সাবস্ক্রাইব</button>
+                        </form>
+                    </div>
+                </section>
+            );
+        };
+
+        const Home = () => {
+            return (
+                <div>
+                    <HeroSection />
+                    <FeaturesBar />
+                    <CategoryCards />
+                    <div id="products-section" className="bg-agri-cream py-10">
+                        <CategorySection title="কীটনাশক" filterCat="Pesticides" />
+                        <CategorySection title="বীজ" filterCat="Seeds" />
+                        <CategorySection title="জৈব সার" filterCat="Fertilizer" />
+                    </div>
+                    <Newsletter />
+                </div>
+            );
+        };
+
+        // Reusable grid + sorting toolbar
+        const ProductGrid = ({ items }) => {
+            const [sort, setSort] = useState('default');
+            const sorted = useMemo(() => {
+                const arr = [...items];
+                if (sort === 'price-asc') arr.sort((a, b) => a.price - b.price);
+                else if (sort === 'price-desc') arr.sort((a, b) => b.price - a.price);
+                else if (sort === 'rating') arr.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+                else if (sort === 'name') arr.sort((a, b) => a.name.localeCompare(b.name, 'bn'));
+                return arr;
+            }, [items, sort]);
+
+            return (
+                <div>
+                    <div className="flex items-center justify-between mb-6 flex-wrap gap-2">
+                        <p className="text-gray-600 text-sm">{sorted.length} টি পণ্য পাওয়া গেছে</p>
+                        <div className="flex items-center gap-2">
+                            <label className="text-sm text-gray-600">সাজান:</label>
+                            <select value={sort} onChange={e => setSort(e.target.value)} className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-agri-400">
+                                <option value="default">ডিফল্ট</option>
+                                <option value="price-asc">দাম: কম থেকে বেশি</option>
+                                <option value="price-desc">দাম: বেশি থেকে কম</option>
+                                <option value="rating">সর্বোচ্চ রেটিং</option>
+                                <option value="name">নাম (ক-হ)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <motion.div 
+                        variants={{ hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.06 } } }}
+                        initial="hidden" animate="show"
+                        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
+                    >
+                        {sorted.map(product => (
+                            <ProductCard key={product.id} product={product} />
+                        ))}
+                    </motion.div>
+                </div>
+            );
+        };
+
+        const CategoryPage = ({ categoryName, filterId }) => {
+            const { products } = useContext(AppContext);
+            const filtered = products.filter(p => p.category === filterId);
+
+            return (
+                <div className="py-10 bg-agri-cream min-h-screen">
+                    <div className="max-w-7xl mx-auto px-4">
+                        <div className="bg-agri-800 rounded-xl p-8 mb-8 text-white shadow-lg relative overflow-hidden">
+                            <div className="relative z-10">
+                                <h1 className="text-4xl font-bold mb-2">{categoryName}</h1>
+                                <p className="text-agri-200">সেরা মানের {categoryName} সংগ্রহ করুন</p>
+                            </div>
+                            <i className="fa-solid fa-leaf absolute right-10 -bottom-10 text-9xl text-agri-700 opacity-30"></i>
+                        </div>
+                        
+                        {filtered.length === 0 ? (
+                            <div className="text-center py-20 text-gray-500">এই ক্যাটাগরিতে কোনো পণ্য নেই।</div>
+                        ) : (
+                            <ProductGrid items={filtered} />
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        const SearchPage = ({ query }) => {
+            const { products, navigate } = useContext(AppContext);
+            const q = (query || '').toLowerCase();
+            const catName = { Pesticides: 'কীটনাশক', Seeds: 'বীজ', Fertilizer: 'জৈব সার' };
+            const results = products.filter(p =>
+                p.name.toLowerCase().includes(q) ||
+                (p.description || '').toLowerCase().includes(q) ||
+                (catName[p.category] || '').includes(query || '')
+            );
+
+            return (
+                <div className="py-10 bg-agri-cream min-h-screen">
+                    <div className="max-w-7xl mx-auto px-4">
+                        <h1 className="text-2xl md:text-3xl font-bold text-gray-800 mb-6">
+                            "<span className="text-agri-700">{query}</span>" এর জন্য ফলাফল
+                        </h1>
+                        {results.length === 0 ? (
+                            <div className="text-center py-20">
+                                <i className="fa-solid fa-magnifying-glass text-5xl text-gray-300 mb-4"></i>
+                                <p className="text-gray-500 mb-4">কোনো পণ্য পাওয়া যায়নি।</p>
+                                <button onClick={() => navigate('Home')} className="bg-agri-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-agri-700">সব পণ্য দেখুন</button>
+                            </div>
+                        ) : (
+                            <ProductGrid items={results} />
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        const WishlistPage = () => {
+            const { wishlist, navigate } = useContext(AppContext);
+            return (
+                <div className="py-10 bg-agri-cream min-h-screen">
+                    <div className="max-w-7xl mx-auto px-4">
+                        <h1 className="text-2xl md:text-3xl font-bold text-gray-800 mb-6"><i className="fa-solid fa-heart text-red-500 mr-2"></i>আমার উইশলিস্ট</h1>
+                        {wishlist.length === 0 ? (
+                            <div className="text-center py-20">
+                                <i className="fa-regular fa-heart text-5xl text-gray-300 mb-4"></i>
+                                <p className="text-gray-500 mb-4">আপনার উইশলিস্ট খালি।</p>
+                                <button onClick={() => navigate('Home')} className="bg-agri-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-agri-700">কেনাকাটা শুরু করুন</button>
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                                {wishlist.map(product => <ProductCard key={product.id} product={product} />)}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        const ProductDetail = ({ id }) => {
+            const { products, addToCart, navigate, toggleWishlist, isWishlisted, setIsCartOpen } = useContext(AppContext);
+            const [qty, setQty] = useState(1);
+            const product = products.find(p => p.id === id);
+
+            useEffect(() => { setQty(1); }, [id]);
+
+            if (!product) return (
+                <div className="text-center py-20 min-h-[50vh]">
+                    <p className="text-2xl mb-4">পণ্য পাওয়া যায়নি!</p>
+                    <button onClick={() => navigate('Home')} className="bg-agri-600 text-white px-6 py-2 rounded-lg font-bold">হোমে ফিরুন</button>
+                </div>
+            );
+
+            const catName = product.category === 'Pesticides' ? 'কীটনাশক' : product.category === 'Seeds' ? 'বীজ' : 'জৈব সার';
+            const hasDiscount = product.oldPrice && product.oldPrice > product.price;
+            const related = products.filter(p => p.category === product.category && p.id !== product.id).slice(0, 4);
+            const buyNow = () => { addToCart(product, qty); setIsCartOpen(false); navigate('Checkout'); };
+
+            return (
+                <div className="max-w-7xl mx-auto px-4 py-8 md:py-12 min-h-screen">
+                    <div className="text-sm text-gray-500 mb-4 flex items-center gap-2 flex-wrap">
+                        <button onClick={() => navigate('Home')} className="hover:text-agri-600">হোম</button>
+                        <span>/</span>
+                        <button onClick={() => navigate('Category', { cat: product.category })} className="hover:text-agri-600">{catName}</button>
+                        <span>/</span>
+                        <span className="text-gray-700">{product.name}</span>
+                    </div>
+
+                    <div className="bg-white rounded-2xl shadow-xl overflow-hidden flex flex-col md:flex-row">
+                        <div className="md:w-1/2 h-[320px] md:h-auto relative bg-agri-50">
+                            <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+                            {hasDiscount && <div className="absolute top-4 left-4 bg-agri-amber text-white text-sm font-bold px-3 py-1 rounded-full shadow">{Math.round((1 - product.price / product.oldPrice) * 100)}% ছাড়</div>}
+                        </div>
+                        <div className="md:w-1/2 p-8 md:p-12 flex flex-col justify-center">
+                            <div className="uppercase tracking-wide text-sm text-agri-600 font-bold mb-2">{catName}</div>
+                            <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-3">{product.name}</h1>
+                            <div className="flex items-center gap-3 mb-4">
+                                <Stars rating={product.rating || 0} size="text-base" />
+                                <span className="text-sm text-gray-500">({(product.rating || 0).toFixed(1)} রেটিং)</span>
+                            </div>
+                            <div className="flex items-baseline gap-3 mb-6">
+                                <span className="text-3xl font-bold text-agri-700">{product.price} ৳</span>
+                                {hasDiscount && <span className="text-xl text-gray-400 line-through">{product.oldPrice} ৳</span>}
+                                {product.unit && <span className="text-sm text-gray-500">/ {product.unit}</span>}
+                            </div>
+
+                            <div className="mb-6">
+                                <h3 className="text-lg font-bold text-gray-800 mb-2">বিবরণ:</h3>
+                                <p className="text-gray-600 leading-relaxed">{product.description}</p>
+                            </div>
+
+                            <div className="mb-6">
+                                <span className={`inline-block px-3 py-1 rounded text-sm font-bold ${product.stock > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                                    {product.stock > 0 ? `স্টকে আছে (${product.stock} টি)` : 'স্টক শেষ'}
+                                </span>
+                            </div>
+
+                            {product.stock > 0 && (
+                                <div className="space-y-4 mb-6">
+                                    <div className="flex items-center space-x-4">
+                                        <div className="flex items-center border border-gray-300 rounded-lg">
+                                            <button onClick={() => setQty(q => Math.max(1, q - 1))} className="px-4 py-2 hover:bg-gray-100 text-gray-600 font-bold">-</button>
+                                            <span className="px-4 py-2 border-l border-r border-gray-300 font-bold">{qty}</span>
+                                            <button onClick={() => setQty(q => Math.min(product.stock, q + 1))} className="px-4 py-2 hover:bg-gray-100 text-gray-600 font-bold">+</button>
+                                        </div>
+                                        <button onClick={() => addToCart(product, qty)} className="flex-grow bg-agri-100 text-agri-800 hover:bg-agri-500 hover:text-white font-bold py-3 px-6 rounded-lg transition">
+                                            <i className="fa-solid fa-cart-plus mr-2"></i> কার্টে যোগ করুন
+                                        </button>
+                                    </div>
+                                    <div className="flex gap-3">
+                                        <button onClick={buyNow} className="flex-grow bg-agri-600 hover:bg-agri-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition transform hover:-translate-y-0.5">
+                                            <i className="fa-solid fa-bolt mr-2"></i> এখনই কিনুন
+                                        </button>
+                                        <button onClick={() => toggleWishlist(product)} className={`w-12 shrink-0 rounded-lg border-2 transition ${isWishlisted(product.id) ? 'border-red-500 bg-red-500 text-white' : 'border-gray-300 text-gray-500 hover:border-red-400 hover:text-red-500'}`}>
+                                            <i className="fa-solid fa-heart"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className="grid grid-cols-3 gap-3 text-center text-xs text-gray-600 border-t border-gray-100 pt-5">
+                                <div><i className="fa-solid fa-truck-fast text-agri-600 text-lg mb-1 block"></i>দ্রুত ডেলিভারি</div>
+                                <div><i className="fa-solid fa-money-bill-wave text-agri-600 text-lg mb-1 block"></i>ক্যাশ অন ডেলিভারি</div>
+                                <div><i className="fa-solid fa-shield-halved text-agri-600 text-lg mb-1 block"></i>মান নিশ্চয়তা</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {related.length > 0 && (
+                        <div className="mt-14">
+                            <h2 className="text-2xl font-bold text-agri-900 border-l-4 border-agri-amber pl-3 mb-6">সম্পর্কিত পণ্য</h2>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                                {related.map(p => <ProductCard key={p.id} product={p} />)}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        const Checkout = () => {
+            const { cart, cartTotal, deliveryCharge, grandTotal, clearCart, navigate, user, notify } = useContext(AppContext);
+            const [formData, setFormData] = useState({ name: user?.name || '', phone: '', address: '', district: '', note: '' });
+            const [payment, setPayment] = useState('cod');
+            const [txnId, setTxnId] = useState('');
+            const [orderSuccess, setOrderSuccess] = useState(null);
+            const [errors, setErrors] = useState({});
+
+            const validate = () => {
+                const er = {};
+                if (!formData.name.trim()) er.name = 'নাম দিন';
+                if (!/^01[3-9]\d{8}$/.test(formData.phone.trim())) er.phone = 'সঠিক ১১ ডিজিটের মোবাইল নম্বর দিন (01XXXXXXXXX)';
+                if (!formData.address.trim()) er.address = 'ঠিকানা দিন';
+                if (!formData.district.trim()) er.district = 'জেলা দিন';
+                if (payment !== 'cod' && !/^[A-Za-z0-9]{6,}$/.test(txnId.trim())) er.txnId = 'সঠিক ট্রানজেকশন আইডি দিন';
+                setErrors(er);
+                return Object.keys(er).length === 0;
+            };
+
+            const [submitting, setSubmitting] = useState(false);
+
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+                if (cart.length === 0) return;
+                if (!validate()) { notify('ফর্মটি সঠিকভাবে পূরণ করুন', 'error'); return; }
+                setSubmitting(true);
+
+                try {
+                    const newOrder = BoltDB.saveOrder({
+                        userId: user?.id || 'guest',
+                        customerInfo: formData,
+                        items: cart,
+                        subtotal: cartTotal,
+                        deliveryCharge: deliveryCharge,
+                        total: grandTotal,
+                        paymentMethod: payment,
+                        transactionId: payment === 'cod' ? null : txnId.trim()
+                    });
+
+                    clearCart();
+                    setOrderSuccess(newOrder.id);
+                    notify('অর্ডার সফল! Supabase-এ সিঙ্ক হচ্ছে... ✅', 'success');
+                } catch (err) {
+                    notify('অর্ডার প্রক্রিয়ায় সমস্যা হয়েছে', 'error');
+                } finally {
+                    setSubmitting(false);
+                }
+            };
+
+            if (orderSuccess) {
+                return (
+                    <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="min-h-[60vh] flex items-center justify-center py-12 px-4">
+                        <div className="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full text-center">
+                            <div className="w-20 h-20 bg-green-100 text-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                                <i className="fa-solid fa-check text-4xl"></i>
+                            </div>
+                            <h2 className="text-2xl font-bold text-gray-800 mb-2">আপনার অর্ডার সফলভাবে সম্পন্ন হয়েছে!</h2>
+                            <p className="text-gray-600 mb-2">অর্ডার আইডি: <span className="font-bold text-agri-700">{orderSuccess}</span></p>
+                            <p className="text-sm text-gray-500 mb-6">আমরা শীঘ্রই আপনার সাথে যোগাযোগ করব। ধন্যবাদ! 🌿</p>
+                            <button onClick={() => navigate('Home')} className="bg-agri-600 hover:bg-agri-700 text-white px-6 py-2 rounded-lg font-bold transition">হোমে ফিরে যান</button>
+                        </div>
+                    </motion.div>
+                );
+            }
+
+            if (cart.length === 0) return <div className="text-center py-20 min-h-[50vh]">কার্ট খালি। <button onClick={()=>navigate('Home')} className="text-agri-600 underline">শপিং করুন</button></div>;
+
+            const errCls = "text-red-500 text-xs mt-1";
+            const payOptions = [
+                { id: 'cod', label: 'ক্যাশ অন ডেলিভারি', icon: 'fa-money-bill-wave', color: 'text-agri-600' },
+                { id: 'bkash', label: 'বিকাশ', icon: 'fa-mobile-screen', color: 'text-pink-600' },
+                { id: 'nagad', label: 'নগদ', icon: 'fa-mobile-screen-button', color: 'text-orange-500' },
+            ];
+            const payNumbers = { bkash: '01700-000000', nagad: '01800-000000' };
+
+            return (
+                <div className="max-w-5xl mx-auto px-4 py-12 min-h-screen">
+                    <h1 className="text-3xl font-bold mb-8 text-gray-800 border-b pb-4">চেকআউট</h1>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                        {/* Form */}
+                        <div className="space-y-6">
+                            <div className="bg-white p-6 rounded-xl shadow-md">
+                                <h2 className="text-xl font-bold mb-6 text-agri-800">ডেলিভারি তথ্য</h2>
+                                <form onSubmit={handleSubmit} className="space-y-4" id="checkout-form">
+                                    <div>
+                                        <label className="block text-gray-700 font-bold mb-2">সম্পূর্ণ নাম</label>
+                                        <input type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-agri-500" placeholder="আপনার নাম লিখুন" />
+                                        {errors.name && <p className={errCls}>{errors.name}</p>}
+                                    </div>
+                                    <div>
+                                        <label className="block text-gray-700 font-bold mb-2">মোবাইল নম্বর</label>
+                                        <input type="tel" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-agri-500" placeholder="01712XXXXXX" />
+                                        {errors.phone && <p className={errCls}>{errors.phone}</p>}
+                                    </div>
+                                    <div>
+                                        <label className="block text-gray-700 font-bold mb-2">জেলা</label>
+                                        <input type="text" value={formData.district} onChange={e => setFormData({...formData, district: e.target.value})} className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-agri-500" placeholder="যেমন: ঢাকা" />
+                                        {errors.district && <p className={errCls}>{errors.district}</p>}
+                                    </div>
+                                    <div>
+                                        <label className="block text-gray-700 font-bold mb-2">বিস্তারিত ঠিকানা</label>
+                                        <textarea rows="3" value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-agri-500" placeholder="বাসা, রাস্তা, এলাকা"></textarea>
+                                        {errors.address && <p className={errCls}>{errors.address}</p>}
+                                    </div>
+                                    <div>
+                                        <label className="block text-gray-700 font-bold mb-2">অতিরিক্ত নোট (ঐচ্ছিক)</label>
+                                        <input type="text" value={formData.note} onChange={e => setFormData({...formData, note: e.target.value})} className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-agri-500" placeholder="ডেলিভারি সংক্রান্ত নির্দেশনা" />
+                                    </div>
+                                </form>
+                            </div>
+
+                            {/* Payment method */}
+                            <div className="bg-white p-6 rounded-xl shadow-md">
+                                <h2 className="text-xl font-bold mb-4 text-agri-800">পেমেন্ট পদ্ধতি</h2>
+                                <div className="space-y-3">
+                                    {payOptions.map(opt => (
+                                        <label key={opt.id} className={`flex items-center gap-3 p-3 border-2 rounded-lg cursor-pointer transition ${payment === opt.id ? 'border-agri-500 bg-agri-50' : 'border-gray-200 hover:border-gray-300'}`}>
+                                            <input type="radio" name="payment" checked={payment === opt.id} onChange={() => { setPayment(opt.id); setTxnId(''); setErrors({}); }} className="accent-agri-600" />
+                                            <i className={`fa-solid ${opt.icon} ${opt.color} text-xl`}></i>
+                                            <span className="font-semibold text-gray-700">{opt.label}</span>
+                                        </label>
+                                    ))}
+                                </div>
+                                {payment !== 'cod' && (
+                                    <div className="mt-4 bg-agri-50 rounded-lg p-4 text-sm">
+                                        <p className="mb-2">নিচের <span className="font-bold">{payment === 'bkash' ? 'বিকাশ' : 'নগদ'}</span> পার্সোনাল নম্বরে <span className="font-bold text-agri-700">{grandTotal} ৳</span> Send Money করুন:</p>
+                                        <p className="text-lg font-bold text-agri-800 mb-3">{payNumbers[payment]}</p>
+                                        <label className="block text-gray-700 font-bold mb-1">ট্রানজেকশন আইডি (TrxID)</label>
+                                        <input type="text" value={txnId} onChange={e => setTxnId(e.target.value)} className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-agri-500" placeholder="যেমন: 9XK4T2P1" />
+                                        {errors.txnId && <p className={errCls}>{errors.txnId}</p>}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Summary */}
+                        <div className="bg-agri-50 p-6 rounded-xl border border-agri-100 h-fit lg:sticky lg:top-24">
+                            <h2 className="text-xl font-bold mb-6 text-agri-800">অর্ডার সামারি</h2>
+                            <div className="space-y-4 max-h-[40vh] overflow-y-auto pr-2">
+                                {cart.map(item => (
+                                    <div key={item.id} className="flex justify-between items-center bg-white p-3 rounded shadow-sm">
+                                        <div className="flex items-center space-x-3">
+                                            <img src={item.image} className="w-12 h-12 rounded object-cover" />
+                                            <div>
+                                                <h4 className="font-bold text-sm text-gray-800">{item.name}</h4>
+                                                <span className="text-xs text-gray-500">{item.price} ৳ x {item.quantity}</span>
+                                            </div>
+                                        </div>
+                                        <span className="font-bold text-agri-700">{item.price * item.quantity} ৳</span>
+                                    </div>
+                                ))}
+                            </div>
+                            <div className="mt-6 pt-4 border-t border-gray-300 space-y-2">
+                                <div className="flex justify-between text-gray-600"><span>সাবটোটাল:</span><span>{cartTotal} ৳</span></div>
+                                <div className="flex justify-between text-gray-600"><span>ডেলিভারি চার্জ:</span><span>{deliveryCharge === 0 ? <span className="text-agri-600 font-semibold">ফ্রি</span> : `${deliveryCharge} ৳`}</span></div>
+                                <div className="flex justify-between font-bold text-xl border-t border-gray-300 pt-2">
+                                    <span>সর্বমোট:</span>
+                                    <span className="text-agri-800">{grandTotal} ৳</span>
+                                </div>
+                            </div>
+                            <button type="submit" form="checkout-form" disabled={submitting} className="w-full mt-6 bg-agri-amber hover:bg-agri-amberDark text-white font-bold py-3 rounded-lg shadow-md transition disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center">
+                                {submitting && <i className="fa-solid fa-circle-notch fa-spin mr-2"></i>}
+                                <i className={`fa-solid fa-bag-shopping mr-2 ${submitting ? 'hidden' : ''}`}></i> {submitting ? 'অর্ডার প্রসেসিং...' : 'অর্ডার নিশ্চিত করুন'}
+                            </button>
+                            <p className="text-sm text-gray-500 mt-3 text-center">নিরাপদ ও নিশ্চিন্ত কেনাকাটা 🔒</p>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const AuthPage = () => {
+            const { setUser, navigate, notify } = useContext(AppContext);
+            const [isLogin, setIsLogin] = useState(true);
+            const [formData, setFormData] = useState({ name: '', email: '', password: '' });
+            const [error, setError] = useState('');
+            const [showPass, setShowPass] = useState(false);
+            const [loading, setLoading] = useState(false);
+
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+                setError('');
+                setLoading(true);
+                try {
+                    if (isLogin) {
+                        const user = await BoltDB.login(formData.email, formData.password);
+                        setUser(user);
+                        notify('সফলভাবে লগইন হয়েছে' + (user.supabase ? ' (Supabase ✅)' : ''), 'success');
+                        if(user.role === 'admin') navigate('Admin');
+                        else navigate('Home');
+                    } else {
+                        const user = await BoltDB.register(formData.name, formData.email, formData.password);
+                        setUser(user);
+                        notify('অ্যাকাউন্ট তৈরি হয়েছে, স্বাগতম!' + (user.supabase ? ' (Supabase ✅)' : ''), 'success');
+                        navigate('Home');
+                    }
+                } catch (err) {
+                    setError(err.message);
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            return (
+                <div className="min-h-[70vh] flex items-center justify-center py-12 px-4">
+                    <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full">
+                        <div className="text-center mb-6">
+                            <i className="fa-solid fa-leaf text-agri-600 text-4xl mb-2"></i>
+                            <h2 className="text-3xl font-bold text-agri-800">{isLogin ? 'লগইন করুন' : 'অ্যাকাউন্ট তৈরি করুন'}</h2>
+                        </div>
+                        {error && <div className="bg-red-100 text-red-600 p-3 rounded mb-4 text-sm font-bold">{error}</div>}
+                        <form onSubmit={handleSubmit} className="space-y-4">
+                            {!isLogin && (
+                                <div>
+                                    <label className="block text-gray-700 font-bold mb-1">নাম</label>
+                                    <input required type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-agri-500" />
+                                </div>
+                            )}
+                            <div>
+                                <label className="block text-gray-700 font-bold mb-1">ইমেইল</label>
+                                <input required type="text" autoComplete="username" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-agri-500" placeholder="you@example.com" />
+                            </div>
+                            <div>
+                                <label className="block text-gray-700 font-bold mb-1">পাসওয়ার্ড</label>
+                                <div className="relative">
+                                    <input required type={showPass ? 'text' : 'password'} autoComplete={isLogin ? 'current-password' : 'new-password'} value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} className="w-full px-4 py-2 pr-11 border rounded-lg focus:outline-none focus:ring-2 focus:ring-agri-500" />
+                                    <button type="button" onClick={() => setShowPass(s => !s)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600" aria-label="পাসওয়ার্ড দেখান">
+                                        <i className={`fa-solid ${showPass ? 'fa-eye-slash' : 'fa-eye'}`}></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <button type="submit" disabled={loading} className="w-full bg-agri-600 hover:bg-agri-700 text-white font-bold py-3 rounded-lg shadow-md transition mt-4 disabled:opacity-60 flex items-center justify-center">
+                                {loading && <i className="fa-solid fa-circle-notch fa-spin mr-2"></i>}
+                                {isLogin ? 'লগইন' : 'রেজিস্টার'}
+                            </button>
+                        </form>
+                        <p className="text-center mt-4 text-gray-600">
+                            {isLogin ? 'অ্যাকাউন্ট নেই? ' : 'আগে থেকেই অ্যাকাউন্ট আছে? '}
+                            <button onClick={() => { setIsLogin(!isLogin); setError(''); }} className="text-agri-700 font-bold hover:underline">{isLogin ? 'রেজিস্টার করুন' : 'লগইন করুন'}</button>
+                        </p>
+                    </motion.div>
+                </div>
+            );
+        };
+
+        const UserProfile = () => {
+            const { user, navigate, setUser, notify } = useContext(AppContext);
+            const [orders, setOrders] = useState([]);
+            const [expanded, setExpanded] = useState(null);
+
+            useEffect(() => {
+                if (!user) navigate('Auth');
+                else {
+                    const allOrders = BoltDB.getOrders();
+                    setOrders(allOrders.filter(o => o.userId === user.id).reverse());
+                }
+            }, [user]);
+
+            const handleLogout = () => { setUser(null); notify('লগআউট হয়েছে', 'info'); navigate('Home'); };
+
+            if (!user) return null;
+
+            const statusBn = { Pending: 'পেন্ডিং', Processing: 'প্রসেসিং', Shipped: 'শিপড', Delivered: 'ডেলিভার্ড' };
+            const payBn = { cod: 'ক্যাশ অন ডেলিভারি', bkash: 'বিকাশ', nagad: 'নগদ' };
+
+            return (
+                <div className="max-w-5xl mx-auto px-4 py-12 min-h-screen">
+                    <div className="flex justify-between items-center mb-8 border-b pb-4">
+                        <h1 className="text-3xl font-bold text-gray-800">আমার প্রোফাইল</h1>
+                        <button onClick={handleLogout} className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-bold"><i className="fa-solid fa-sign-out-alt mr-2"></i>লগআউট</button>
+                    </div>
+
+                    <div className="bg-white p-6 rounded-xl shadow mb-8 flex items-center gap-4">
+                        <div className="w-16 h-16 rounded-full bg-agri-100 text-agri-700 flex items-center justify-center text-2xl font-bold">{(user.name || 'U')[0]}</div>
+                        <div>
+                            <h2 className="text-xl font-bold">স্বাগতম, {user.name}</h2>
+                            <p className="text-gray-600 text-sm">ইমেইল: {user.email || '-'}</p>
+                            <p className="text-gray-500 text-sm">মোট অর্ডার: {orders.length} টি</p>
+                        </div>
+                    </div>
+
+                    <h2 className="text-2xl font-bold mb-4">আমার অর্ডারসমূহ</h2>
+                    {orders.length === 0 ? (
+                        <div className="bg-white p-8 rounded-xl shadow text-center text-gray-500">
+                            আপনি এখনও কোনো অর্ডার করেননি।
+                            <div className="mt-4"><button onClick={() => navigate('Home')} className="bg-agri-600 text-white px-6 py-2 rounded-lg font-bold">কেনাকাটা শুরু করুন</button></div>
+                        </div>
+                    ) : (
+                        <div className="space-y-4">
+                            {orders.map(order => (
+                                <div key={order.id} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                                    <div className="p-6 flex flex-col md:flex-row justify-between md:items-center gap-4">
+                                        <div>
+                                            <p className="font-bold text-agri-800">অর্ডার আইডি: {order.id}</p>
+                                            <p className="text-sm text-gray-500">তারিখ: {new Date(order.date).toLocaleDateString('bn-BD')}</p>
+                                            <p className="text-sm text-gray-600 mt-2">মোট মূল্য: <span className="font-bold">{order.total} ৳</span> | আইটেম: {order.items.length} টি | {payBn[order.paymentMethod] || 'COD'}</p>
+                                        </div>
+                                        <div className="flex items-center gap-3">
+                                            <span className={`px-4 py-2 rounded-full text-sm font-bold ${order.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' : order.status === 'Processing' ? 'bg-purple-100 text-purple-800' : order.status === 'Shipped' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'}`}>
+                                                {statusBn[order.status] || order.status}
+                                            </span>
+                                            <button onClick={() => setExpanded(expanded === order.id ? null : order.id)} className="text-agri-600 hover:text-agri-800 text-sm font-semibold">
+                                                {expanded === order.id ? 'বন্ধ করুন' : 'বিস্তারিত'} <i className={`fa-solid fa-chevron-${expanded === order.id ? 'up' : 'down'} ml-1 text-xs`}></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    {expanded === order.id && (
+                                        <div className="border-t border-gray-100 bg-gray-50 p-6 space-y-2">
+                                            {order.items.map((it, idx) => (
+                                                <div key={idx} className="flex justify-between text-sm text-gray-700">
+                                                    <span>{it.name} <span className="text-gray-400">x{it.quantity}</span></span>
+                                                    <span>{it.price * it.quantity} ৳</span>
+                                                </div>
+                                            ))}
+                                            {order.deliveryCharge !== undefined && (
+                                                <div className="flex justify-between text-sm text-gray-500 pt-2 border-t border-gray-200 mt-2">
+                                                    <span>ডেলিভারি চার্জ</span><span>{order.deliveryCharge === 0 ? 'ফ্রি' : order.deliveryCharge + ' ৳'}</span>
+                                                </div>
+                                            )}
+                                            <p className="text-xs text-gray-500 pt-2">ঠিকানা: {order.customerInfo?.address}{order.customerInfo?.district ? ', ' + order.customerInfo.district : ''} | ফোন: {order.customerInfo?.phone}</p>
+                                            {order.transactionId && <p className="text-xs text-gray-500">TrxID: {order.transactionId}</p>}
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        // --- Admin Dashboard (English as requested) ---
+        const AdminDashboard = () => {
+            const { user, navigate, setUser, refreshProducts } = useContext(AppContext);
+            const [activeTab, setActiveTab] = useState('Overview');
+            
+            // Stats & Data
+            const [products, setAdminProducts] = useState([]);
+            const [orders, setAdminOrders] = useState([]);
+            const [users, setAdminUsers] = useState([]);
+
+            // Form states
+            const [showProductForm, setShowProductForm] = useState(false);
+            const [editProduct, setEditProduct] = useState(null);
+            
+            const loadData = () => {
+                setAdminProducts(BoltDB.getProducts());
+                setAdminOrders(BoltDB.getOrders());
+                setAdminUsers(BoltDB.getUsers());
+            };
+
+            useEffect(() => {
+                if (!user || user.role !== 'admin') navigate('Home');
+                else loadData();
+            }, [user, activeTab]);
+
+            const handleLogout = () => { setUser(null); navigate('Home'); };
+
+            const totalRevenue = orders.reduce((sum, o) => sum + o.total, 0);
+
+            // Image Upload → Supabase Storage (with base64 fallback)
+            const handleImageUpload = async (e, callback) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                // Try Supabase Storage upload first
+                try {
+                    const fileExt = file.name.split('.').pop();
+                    const fileName = `product_${Date.now()}.${fileExt}`;
+                    const filePath = `products/${fileName}`;
+
+                    const { data, error } = await supabaseClient.storage
+                        .from('product-images')
+                        .upload(filePath, file, {
+                            cacheControl: '3600',
+                            upsert: false
+                        });
+
+                    if (error) throw error;
+
+                    // Get public URL
+                    const { data: urlData } = supabaseClient.storage
+                        .from('product-images')
+                        .getPublicUrl(filePath);
+
+                    if (urlData?.publicUrl) {
+                        console.log('[Supabase Storage] ✅ Image uploaded:', urlData.publicUrl);
+                        callback(urlData.publicUrl);
+                        return;
+                    }
+                } catch (storageErr) {
+                    console.warn('[Supabase Storage] Upload failed, using base64 fallback:', storageErr.message);
+                }
+
+                // Fallback: base64 DataURL (works offline / if storage fails)
+                const reader = new FileReader();
+                reader.onloadend = () => callback(reader.result);
+                reader.readAsDataURL(file);
+            };
+
+            const ProductForm = () => {
+                const [form, setForm] = useState(editProduct || { name: '', category: 'Pesticides', price: '', oldPrice: '', unit: '', rating: 4.5, stock: '', description: '', image: '' });
+                const [uploading, setUploading] = useState(false);
+                
+                const save = (e) => {
+                    e.preventDefault();
+                    BoltDB.saveProduct({ ...form, price: Number(form.price), oldPrice: Number(form.oldPrice) || 0, rating: Number(form.rating) || 0, stock: Number(form.stock) });
+                    setShowProductForm(false);
+                    setEditProduct(null);
+                    loadData();
+                    refreshProducts();
+                };
+
+                const onImageSelect = async (e) => {
+                    setUploading(true);
+                    await handleImageUpload(e, (url) => setForm(prev => ({...prev, image: url})));
+                    setUploading(false);
+                };
+
+                return (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                        <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
+                            <h2 className="text-2xl font-bold mb-4">{editProduct ? 'Edit Product' : 'Add New Product'}</h2>
+                            <form onSubmit={save} className="space-y-4">
+                                <div><label className="block text-sm font-bold">Name</label><input required className="w-full border p-2 rounded" value={form.name} onChange={e=>setForm({...form, name: e.target.value})} /></div>
+                                <div><label className="block text-sm font-bold">Category</label>
+                                    <select className="w-full border p-2 rounded" value={form.category} onChange={e=>setForm({...form, category: e.target.value})}>
+                                        <option value="Pesticides">Pesticides</option>
+                                        <option value="Seeds">Seeds</option>
+                                        <option value="Fertilizer">Organic Fertilizer</option>
+                                    </select>
+                                </div>
+                                <div className="flex gap-4">
+                                    <div className="flex-1"><label className="block text-sm font-bold">Price (৳)</label><input required type="number" min="0" className="w-full border p-2 rounded" value={form.price} onChange={e=>setForm({...form, price: e.target.value})} /></div>
+                                    <div className="flex-1"><label className="block text-sm font-bold">Old Price (optional)</label><input type="number" min="0" className="w-full border p-2 rounded" value={form.oldPrice} onChange={e=>setForm({...form, oldPrice: e.target.value})} /></div>
+                                </div>
+                                <div className="flex gap-4">
+                                    <div className="flex-1"><label className="block text-sm font-bold">Stock</label><input required type="number" min="0" className="w-full border p-2 rounded" value={form.stock} onChange={e=>setForm({...form, stock: e.target.value})} /></div>
+                                    <div className="flex-1"><label className="block text-sm font-bold">Unit (e.g. 1kg)</label><input type="text" className="w-full border p-2 rounded" value={form.unit} onChange={e=>setForm({...form, unit: e.target.value})} /></div>
+                                    <div className="flex-1"><label className="block text-sm font-bold">Rating (0-5)</label><input type="number" min="0" max="5" step="0.1" className="w-full border p-2 rounded" value={form.rating} onChange={e=>setForm({...form, rating: e.target.value})} /></div>
+                                </div>
+                                <div><label className="block text-sm font-bold">Description</label><textarea required className="w-full border p-2 rounded" value={form.description} onChange={e=>setForm({...form, description: e.target.value})}></textarea></div>
+                                <div>
+                                    <label className="block text-sm font-bold mb-1">Product Image (Supabase Storage)</label>
+                                    <input type="file" accept="image/*" onChange={onImageSelect} disabled={uploading} className="w-full border p-2 rounded text-sm disabled:opacity-50" />
+                                    {uploading && <p className="text-xs text-agri-600 mt-1 flex items-center"><i className="fa-solid fa-circle-notch fa-spin mr-1"></i> Supabase Storage-এ আপলোড হচ্ছে...</p>}
+                                    {form.image && !uploading && (
+                                        <div className="mt-2 flex items-center gap-3">
+                                            <img src={form.image} alt="Preview" className="h-20 object-cover rounded border" />
+                                            {form.image.includes('supabase') && <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded font-bold">☁️ Supabase</span>}
+                                        </div>
+                                    )}
+                                    <p className="text-xs text-gray-400 mt-1">অথবা Image URL paste করুন:</p>
+                                    <input type="text" className="w-full border p-2 rounded text-sm mt-1" placeholder="https://example.com/image.jpg" value={form.image} onChange={e=>setForm({...form, image: e.target.value})} />
+                                </div>
+                                <div className="flex gap-2 justify-end mt-6">
+                                    <button type="button" onClick={() => {setShowProductForm(false); setEditProduct(null);}} className="px-4 py-2 bg-gray-200 rounded font-bold">Cancel</button>
+                                    <button type="submit" disabled={uploading} className="px-4 py-2 bg-green-600 text-white rounded font-bold disabled:opacity-50">{uploading ? 'আপলোড হচ্ছে...' : 'Save Product'}</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                );
+            };
+
+            const renderContent = () => {
+                if (activeTab === 'Overview') return (
+                    <div className="space-y-6">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
+                            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center">
+                                <div className="p-4 bg-blue-100 text-blue-600 rounded-lg mr-4"><i className="fa-solid fa-box text-2xl"></i></div>
+                                <div><p className="text-gray-500 text-sm font-bold">Total Products</p><h3 className="text-2xl font-bold">{products.length}</h3></div>
+                            </div>
+                            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center">
+                                <div className="p-4 bg-yellow-100 text-yellow-600 rounded-lg mr-4"><i className="fa-solid fa-shopping-bag text-2xl"></i></div>
+                                <div><p className="text-gray-500 text-sm font-bold">Total Orders</p><h3 className="text-2xl font-bold">{orders.length}</h3></div>
+                            </div>
+                            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center">
+                                <div className="p-4 bg-green-100 text-green-600 rounded-lg mr-4"><i className="fa-solid fa-money-bill-wave text-2xl"></i></div>
+                                <div><p className="text-gray-500 text-sm font-bold">Total Revenue</p><h3 className="text-2xl font-bold">{totalRevenue} ৳</h3></div>
+                            </div>
+                            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center">
+                                <div className="p-4 bg-purple-100 text-purple-600 rounded-lg mr-4"><i className="fa-solid fa-users text-2xl"></i></div>
+                                <div><p className="text-gray-500 text-sm font-bold">Registered Users</p><h3 className="text-2xl font-bold">{users.length}</h3></div>
+                            </div>
+                        </div>
+                        {products.filter(p => p.stock > 0 && p.stock <= 10).length > 0 && (
+                            <div className="bg-amber-50 border border-amber-200 text-amber-800 rounded-xl p-4 flex items-center gap-3">
+                                <i className="fa-solid fa-triangle-exclamation text-xl"></i>
+                                <span className="text-sm font-medium">{products.filter(p => p.stock > 0 && p.stock <= 10).length} টি পণ্যের স্টক কম ({products.filter(p => p.stock > 0 && p.stock <= 10).map(p => p.name).join(', ')})</span>
+                            </div>
+                        )}
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                            <h3 className="text-lg font-bold mb-4">Recent Orders</h3>
+                            <table className="w-full text-left">
+                                <thead><tr className="border-b text-gray-500"><th className="pb-2">ID</th><th className="pb-2">Date</th><th className="pb-2">Total</th><th className="pb-2">Status</th></tr></thead>
+                                <tbody>
+                                    {orders.slice(-5).reverse().map(o => (
+                                        <tr key={o.id} className="border-b last:border-0"><td className="py-3">{o.id}</td><td>{new Date(o.date).toLocaleDateString()}</td><td>{o.total} ৳</td><td><span className="bg-gray-100 px-2 py-1 rounded text-xs font-bold">{o.status}</span></td></tr>
+                                    ))}
+                                    {orders.length === 0 && <tr><td colSpan="4" className="py-4 text-center text-gray-500">No orders yet</td></tr>}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                );
+
+                if (activeTab === 'Products') return (
+                    <div>
+                        <div className="flex justify-between items-center mb-6">
+                            <h2 className="text-2xl font-bold">Products Management</h2>
+                            <button onClick={() => setShowProductForm(true)} className="bg-green-600 text-white px-4 py-2 rounded-lg font-bold"><i className="fa-solid fa-plus mr-2"></i>Add Product</button>
+                        </div>
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-x-auto">
+                            <table className="w-full text-left whitespace-nowrap">
+                                <thead><tr className="bg-gray-50 border-b"><th className="p-4">Image</th><th className="p-4">Name</th><th className="p-4">Category</th><th className="p-4">Price</th><th className="p-4">Stock</th><th className="p-4">Actions</th></tr></thead>
+                                <tbody>
+                                    {products.map(p => (
+                                        <tr key={p.id} className="border-b">
+                                            <td className="p-4"><img src={p.image} className="w-12 h-12 rounded object-cover" /></td>
+                                            <td className="p-4 font-medium">{p.name}</td>
+                                            <td className="p-4">{p.category}</td>
+                                            <td className="p-4">{p.price} ৳</td>
+                                            <td className="p-4"><span className={`px-2 py-1 rounded text-xs font-bold ${p.stock > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{p.stock}</span></td>
+                                            <td className="p-4">
+                                                <button onClick={() => {setEditProduct(p); setShowProductForm(true);}} className="text-blue-500 hover:text-blue-700 mr-3"><i className="fa-solid fa-edit"></i></button>
+                                                <button onClick={() => {if(confirm('Delete product?')) { BoltDB.deleteProduct(p.id); loadData(); refreshProducts(); }}} className="text-red-500 hover:text-red-700"><i className="fa-solid fa-trash"></i></button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                        {showProductForm && <ProductForm />}
+                    </div>
+                );
+
+                if (activeTab === 'Orders') return (
+                    <div>
+                        <h2 className="text-2xl font-bold mb-6">Orders Management</h2>
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-x-auto">
+                            <table className="w-full text-left whitespace-nowrap">
+                                <thead><tr className="bg-gray-50 border-b"><th className="p-4">Order ID</th><th className="p-4">Customer</th><th className="p-4">Date</th><th className="p-4">Total</th><th className="p-4">Status</th><th className="p-4">Update Status</th></tr></thead>
+                                <tbody>
+                                    {orders.slice().reverse().map(o => (
+                                        <tr key={o.id} className="border-b">
+                                            <td className="p-4 font-medium">{o.id}</td>
+                                            <td className="p-4">{o.customerInfo.name} <br/><span className="text-xs text-gray-500">{o.customerInfo.phone}</span></td>
+                                            <td className="p-4">{new Date(o.date).toLocaleDateString()}</td>
+                                            <td className="p-4 font-bold">{o.total} ৳</td>
+                                            <td className="p-4"><span className="bg-gray-100 px-2 py-1 rounded text-xs font-bold">{o.status}</span></td>
+                                            <td className="p-4">
+                                                <select value={o.status} onChange={(e) => { BoltDB.updateOrderStatus(o.id, e.target.value); loadData(); }} className="border rounded p-1 text-sm outline-none">
+                                                    <option value="Pending">Pending</option>
+                                                    <option value="Processing">Processing</option>
+                                                    <option value="Shipped">Shipped</option>
+                                                    <option value="Delivered">Delivered</option>
+                                                </select>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                );
+
+                if (activeTab === 'Users') return (
+                    <div>
+                        <h2 className="text-2xl font-bold mb-6">Registered Users</h2>
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-x-auto">
+                            <table className="w-full text-left whitespace-nowrap">
+                                <thead><tr className="bg-gray-50 border-b"><th className="p-4">Name</th><th className="p-4">Email</th><th className="p-4">Registration Date</th><th className="p-4">Orders Count</th></tr></thead>
+                                <tbody>
+                                    {users.map(u => {
+                                        const userOrders = orders.filter(o => o.userId === u.id).length;
+                                        return (
+                                            <tr key={u.id} className="border-b">
+                                                <td className="p-4 font-medium">{u.name}</td>
+                                                <td className="p-4">{u.email}</td>
+                                                <td className="p-4">{new Date(u.registeredAt).toLocaleDateString()}</td>
+                                                <td className="p-4"><span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-bold">{userOrders}</span></td>
+                                            </tr>
+                                        )
+                                    })}
+                                    {users.length === 0 && <tr><td colSpan="4" className="p-4 text-center text-gray-500">No users found.</td></tr>}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                );
+
+                if (activeTab === 'Settings') return (
+                    <div className="max-w-2xl space-y-6">
+                        <h2 className="text-2xl font-bold">Settings</h2>
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-3">
+                            <h3 className="font-bold text-gray-800">Store Information</h3>
+                            <div className="grid grid-cols-2 gap-3 text-sm">
+                                <div><span className="text-gray-500">Store Name</span><p className="font-semibold">কৃষি স্টোর</p></div>
+                                <div><span className="text-gray-500">Currency</span><p className="font-semibold">BDT (৳)</p></div>
+                                <div><span className="text-gray-500">Delivery Charge</span><p className="font-semibold">{DELIVERY_CHARGE} ৳</p></div>
+                                <div><span className="text-gray-500">Free Delivery Above</span><p className="font-semibold">{FREE_DELIVERY_THRESHOLD} ৳</p></div>
+                                <div><span className="text-gray-500">Logged in as</span><p className="font-semibold">{user.name}</p></div>
+                                <div><span className="text-gray-500">Payment Methods</span><p className="font-semibold">COD, bKash, Nagad</p></div>
+                            </div>
+                        </div>
+                        <div className="bg-white rounded-xl shadow-sm border border-red-200 p-6">
+                            <h3 className="font-bold text-red-600 mb-2"><i className="fa-solid fa-triangle-exclamation mr-2"></i>Danger Zone</h3>
+                            <p className="text-sm text-gray-500 mb-4">Reset all products to defaults. This cannot be undone.</p>
+                            <button onClick={() => { if(confirm('Reset products to defaults? This deletes all custom products.')) { localStorage.setItem('bolt_products', JSON.stringify(MOCK_PRODUCTS)); loadData(); refreshProducts(); } }} className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-bold">Reset Products</button>
+                        </div>
+                    </div>
+                );
+
+                return <div>Feature coming soon...</div>;
+            };
+
+            return (
+                <div className="flex h-screen bg-gray-50 font-sans">
+                    {/* Sidebar */}
+                    <div className="w-64 bg-gray-900 text-white flex flex-col">
+                        <div className="p-6 text-xl font-bold border-b border-gray-800 flex items-center justify-between">
+                            <span>Admin Panel</span>
+                            <button onClick={()=>navigate('Home')} className="text-gray-400 hover:text-white" title="Go to Shop"><i className="fa-solid fa-external-link-alt"></i></button>
+                        </div>
+                        <div className="flex-grow py-4 space-y-1">
+                            {['Overview', 'Products', 'Orders', 'Users', 'Settings'].map(tab => (
+                                <button key={tab} onClick={() => setActiveTab(tab)} className={`w-full text-left px-6 py-3 font-medium transition ${activeTab === tab ? 'bg-green-600 text-white' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}`}>
+                                    <i className={`fa-solid fa-${tab==='Overview'?'chart-line':tab==='Products'?'box':tab==='Orders'?'shopping-cart':tab==='Users'?'users':'cog'} w-6 text-center mr-2`}></i> {tab}
+                                </button>
+                            ))}
+                        </div>
+                        <div className="p-4 border-t border-gray-800">
+                            <button onClick={handleLogout} className="w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded font-bold transition">Logout</button>
+                        </div>
+                    </div>
+                    {/* Content */}
+                    <div className="flex-1 overflow-y-auto p-8 text-gray-800">
+                        {renderContent()}
+                    </div>
+                </div>
+            );
+        };
+
+        const OrderStatusStepper = ({ status }) => {
+    const steps = [
+        { id: 'Pending', label: 'অর্ডার গ্রহণ' },
+        { id: 'Processing', label: 'প্রসেসিং' },
+        { id: 'Shipped', label: 'শিপড' },
+        { id: 'Delivered', label: 'ডেলিভার্ড' },
+    ];
+    const currentIndex = steps.findIndex(s => s.id === status);
+
+    return (
+        <div className="relative flex justify-between items-center w-full py-4 px-2">
+            {/* Line Background */}
+            <div className="absolute top-1/2 left-0 w-full h-1 bg-gray-200 -translate-y-1/2 z-0"></div>
+            {/* Progress Line */}
+            <div 
+                className="absolute top-1/2 left-0 h-1 bg-agri-600 -translate-y-1/2 z-0 transition-all duration-500" 
+                style={{ width: `${(currentIndex / (steps.length - 1)) * 100}%` }}
+            ></div>
+            
+            {steps.map((step, idx) => (
+                <div key={step.id} className="relative z-10 flex flex-col items-center">
+                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold transition-colors duration-300 ${idx <= currentIndex ? 'bg-agri-600 text-white' : 'bg-gray-300 text-gray-600'}`}>
+                        {idx < currentIndex ? <i className="fa-solid fa-check"></i> : idx + 1}
+                    </div>
+                    <span className={`absolute top-8 text-[10px] sm:text-xs whitespace-nowrap font-medium ${idx <= currentIndex ? 'text-agri-800 font-bold' : 'text-gray-400'}`}>
+                        {step.label}
+                    </span>
+                </div>
+            ))}
+        </div>
+    );
+};
+
+const MyOrders = () => {
+    const { user, navigate } = useContext(AppContext);
+    const [orders, setOrders] = useState([]);
+
+    useEffect(() => {
+        if (!user) navigate('Auth');
+        else {
+            const allOrders = BoltDB.getOrders();
+            setOrders(allOrders.filter(o => o.userId === user.id).reverse());
+        }
+    }, [user]);
+
+    if (!user) return null;
+
+    const payBn = { cod: 'ক্যাশ অন ডেলিভারি', bkash: 'বিকাশ', nagad: 'নগদ' };
+
+    return (
+        <div className="max-w-5xl mx-auto px-4 py-12 min-h-screen">
+            <h1 className="text-3xl font-bold text-gray-800 mb-8 border-b pb-4"><i className="fa-solid fa-box-open text-agri-600 mr-3"></i>আমার অর্ডারসমূহ</h1>
+            {orders.length === 0 ? (
+                <div className="bg-white p-12 rounded-2xl shadow text-center text-gray-500">
+                    <i className="fa-solid fa-cart-shopping text-5xl mb-4 opacity-20"></i>
+                    <p className="text-xl mb-6">আপনার কোনো অর্ডার নেই।</p>
+                    <button onClick={() => navigate('Home')} className="bg-agri-600 text-white px-8 py-3 rounded-lg font-bold hover:bg-agri-700 transition">কেনাকাটা শুরু করুন</button>
+                </div>
+            ) : (
+                <div className="space-y-8">
+                    {orders.map(order => (
+                        <div key={order.id} className="bg-white rounded-2xl shadow-md border border-agri-100 overflow-hidden">
+                            <div className="p-6 bg-agri-50 border-b border-agri-100 flex flex-col md:flex-row justify-between md:items-center gap-4">
+                                <div>
+                                    <p className="font-bold text-agri-800">অর্ডার আইডি: {order.id}</p>
+                                    <p className="text-sm text-gray-500">অর্ডার তারিখ: {new Date(order.date).toLocaleDateString('bn-BD')}</p>
+                                </div>
+                                <div className="flex items-center gap-4">
+                                    <div className="text-right">
+                                        <p className="text-xs text-gray-500">সম্ভাব্য ডেলিভারি তারিখ</p>
+                                        <p className="text-sm font-bold text-agri-700">{order.estimatedDelivery ? new Date(order.estimatedDelivery).toLocaleDateString('bn-BD') : 'নির্ধারিত নয়'}</p>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="text-xs text-gray-500">মোট মূল্য</p>
+                                        <p className="text-lg font-bold text-agri-800">{order.total} ৳</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="p-6">
+                                <h3 className="text-sm font-bold text-gray-600 uppercase tracking-wider mb-6">অর্ডার প্রোগ্রেস:</h3>
+                                <div className="mb-8">
+                                    <OrderStatusStepper status={order.status} />
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                    <div>
+                                        <h4 className="font-bold text-gray-800 mb-3 flex items-center"><i className="fa-solid fa-list-ul mr-2 text-agri-600"></i>অর্ডার করা পণ্য:</h4>
+                                        <div className="space-y-2">
+                                            {order.items.map((item, idx) => (
+                                                <div key={idx} className="flex justify-between text-sm py-2 border-b border-gray-100 last:border-0">
+                                                    <span className="text-gray-700">{item.name} <span className="text-gray-400">x {item.quantity}</span></span>
+                                                    <span className="font-medium">{item.price * item.quantity} ৳</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <div className="bg-gray-50 p-4 rounded-xl">
+                                        <h4 className="font-bold text-gray-800 mb-3 flex items-center"><i className="fa-solid fa-circle-info mr-2 text-agri-600"></i>তথ্য:</h4>
+                                        <div className="space-y-2 text-sm">
+                                            <div className="flex justify-between"><span className="text-gray-500">পেমেন্ট পদ্ধতি:</span><span className="font-medium">{payBn[order.paymentMethod] || order.paymentMethod}</span></div>
+                                            <div className="flex justify-between"><span className="text-gray-500">ঠিকানা:</span><span className="font-medium text-right">{order.customerInfo?.address}, {order.customerInfo?.district}</span></div>
+                                            <div className="flex justify-between"><span className="text-gray-500">মোবাইল নম্বর:</span><span className="font-medium">{order.customerInfo?.phone}</span></div>
+                                            {order.transactionId && <div className="flex justify-between"><span className="text-gray-500">TrxID:</span><span className="font-medium">{order.transactionId}</span></div>}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+};
+
+        const BackToTop = () => {
+            const [show, setShow] = useState(false);
+            useEffect(() => {
+                const onScroll = () => setShow(window.scrollY > 400);
+                window.addEventListener('scroll', onScroll);
+                return () => window.removeEventListener('scroll', onScroll);
+            }, []);
+            return (
+                <AnimatePresence>
+                    {show && (
+                        <motion.button
+                            initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.5 }}
+                            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                            className="fixed bottom-5 left-5 z-40 w-11 h-11 rounded-full bg-agri-600 hover:bg-agri-700 text-white shadow-lg flex items-center justify-center"
+                            aria-label="উপরে যান">
+                            <i className="fa-solid fa-arrow-up"></i>
+                        </motion.button>
+                    )}
+                </AnimatePresence>
+            );
+        };
+
+        const MainContent = () => {
+            const { route } = useContext(AppContext);
+            
+            // Do not show navbar/footer in Admin view
+            if (route.page === 'Admin') return <AdminDashboard />;
+
+            return (
+                <div className="flex flex-col min-h-screen">
+                    <Navbar />
+                    <CartDrawer />
+                    <BackToTop />
+                    <main className="flex-grow">
+                        {route.page === 'Home' && <Home />}
+                        {route.page === 'Category' && <CategoryPage categoryName={route.params.cat === 'Pesticides' ? 'কীটনাশক' : route.params.cat === 'Seeds' ? 'বীজ' : 'জৈব সার'} filterId={route.params.cat} />}
+                        {route.page === 'ProductDetail' && <ProductDetail id={route.params.id} />}
+                        {route.page === 'Search' && <SearchPage query={route.params.q} />}
+                        {route.page === 'Wishlist' && <WishlistPage />}
+                        {route.page === 'MyOrders' && <MyOrders />}
+                        {route.page === 'Checkout' && <Checkout />}
+                        {route.page === 'Auth' && <AuthPage />}
+                        {route.page === 'Profile' && <UserProfile />}
+                    </main>
+                    <Footer />
+                </div>
+            );
+        };
+
+        const App = () => {
+            return (
+                <AppProvider>
+                    <MainContent />
+                </AppProvider>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
