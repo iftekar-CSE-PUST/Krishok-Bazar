@@ -1263,6 +1263,7 @@
                 setSubmitting(true);
 
                 try {
+                    // 1) Save order locally + Supabase
                     const newOrder = BoltDB.saveOrder({
                         userId: user?.id || 'guest',
                         customerInfo: formData,
@@ -1274,9 +1275,42 @@
                         transactionId: payment === 'cod' ? null : txnId.trim()
                     });
 
+                    // 2) Send full order details to Formspree
+                    const itemsList = cart.map(item =>
+                        `• ${item.name} (x${item.quantity}) — ${item.price * item.quantity} ৳`
+                    ).join('\n');
+
+                    const paymentLabel = { cod: 'ক্যাশ অন ডেলিভারি', bkash: 'বিকাশ', nagad: 'নগদ' }[payment] || payment;
+
+                    const formspreeData = {
+                        '🆔 Order ID':        newOrder.id,
+                        '📅 Order Date':       new Date(newOrder.date).toLocaleString('bn-BD'),
+                        '👤 Customer Name':    formData.name,
+                        '📞 Phone':            formData.phone,
+                        '🏙️ District':         formData.district,
+                        '📍 Address':          formData.address,
+                        '📝 Note':             formData.note || '—',
+                        '💳 Payment Method':   paymentLabel,
+                        '🔖 Transaction ID':   payment !== 'cod' ? (txnId.trim() || '—') : '—',
+                        '🛒 Items':            itemsList,
+                        '🧾 Subtotal':         `${cartTotal} ৳`,
+                        '🚚 Delivery Charge':  deliveryCharge === 0 ? 'ফ্রি' : `${deliveryCharge} ৳`,
+                        '💰 Grand Total':      `${grandTotal} ৳`,
+                        '_subject':            `🌿 নতুন অর্ডার: ${newOrder.id} — ${formData.name}`,
+                    };
+
+                    fetch('https://formspree.io/f/xqeozgjz', {
+                        method: 'POST',
+                        headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+                        body: JSON.stringify(formspreeData),
+                    }).then(res => {
+                        if (res.ok) console.log('[Formspree] ✅ Order email sent:', newOrder.id);
+                        else res.json().then(d => console.warn('[Formspree] ❌ Error:', d));
+                    }).catch(err => console.warn('[Formspree] Network error:', err.message));
+
                     clearCart();
                     setOrderSuccess(newOrder.id);
-                    notify('অর্ডার সফল! Supabase-এ সিঙ্ক হচ্ছে... ✅', 'success');
+                    notify('অর্ডার সফল! ইমেইল পাঠানো হচ্ছে... ✅', 'success');
                 } catch (err) {
                     notify('অর্ডার প্রক্রিয়ায় সমস্যা হয়েছে', 'error');
                 } finally {
