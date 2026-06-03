@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>কৃষি স্টোর | বীজ, সার ও কীটনাশকের বিশ্বস্ত অনলাইন দোকান</title>
+    <title>কৃষক বাজার  | বীজ, সার ও কীটনাশকের বিশ্বস্ত অনলাইন দোকান</title>
     <meta name="description" content="বাংলাদেশের কৃষকদের জন্য মানসম্মত বীজ, জৈব সার এবং কীটনাশকের নির্ভরযোগ্য অনলাইন স্টোর। ক্যাশ অন ডেলিভারি ও সারা দেশে দ্রুত ডেলিভারি।">
     <meta name="theme-color" content="#558b2f">
-    <meta property="og:title" content="কৃষি স্টোর | Agri Store">
+    <meta property="og:title" content="কৃষক বাজার | Agri Store">
     <meta property="og:description" content="মানসম্মত বীজ, জৈব সার ও কীটনাশক — সবই এক ঠিকানায়।">
     <meta property="og:type" content="website">
     
@@ -554,7 +554,7 @@
                         <div className="flex justify-between items-center h-16 gap-4">
                             <div className="flex items-center cursor-pointer shrink-0" onClick={() => navigate('Home')}>
                                 <i className="fa-solid fa-leaf text-agri-600 text-2xl mr-2"></i>
-                                <span className="font-bold text-xl sm:text-2xl text-agri-800">কৃষি স্টোর</span>
+                                <span className="font-bold text-xl sm:text-2xl text-agri-800">কৃষক বাজার</span>
                             </div>
 
                             {/* Search bar (desktop) */}
@@ -568,9 +568,9 @@
                             {/* Desktop Menu */}
                             <div className="hidden lg:flex space-x-5 items-center shrink-0">
                                 <button onClick={() => navigate('Home')} className="text-gray-700 hover:text-agri-600 font-semibold transition">হোম</button>
-                                <button onClick={() => navigate('Category', { cat: 'Pesticides' })} className="text-gray-700 hover:text-agri-600 font-semibold transition">কীটনাশক</button>
+                                <button onClick={() => navigate('Category', { cat: 'Pesticides' })} className="text-gray-700 hover:text-agri-600 font-semibold transition">কীটনাশক ও বালাইনাশক</button>
                                 <button onClick={() => navigate('Category', { cat: 'Seeds' })} className="text-gray-700 hover:text-agri-600 font-semibold transition">বীজ</button>
-                                <button onClick={() => navigate('Category', { cat: 'Fertilizer' })} className="text-gray-700 hover:text-agri-600 font-semibold transition">জৈব সার</button>
+                                <button onClick={() => navigate('Category', { cat: 'Fertilizer' })} className="text-gray-700 hover:text-agri-600 font-semibold transition">জৈব সার ও রাসায়নিক সার</button>
                                 <button onClick={() => navigate('MyOrders')} className="text-gray-700 hover:text-agri-600 font-semibold transition">আমার অর্ডার</button>
                             </div>
 
@@ -631,9 +631,9 @@
                     {mobileMenu && (
                         <div className="lg:hidden bg-white border-t border-agri-100 px-4 pt-2 pb-4 space-y-2">
                             <button onClick={() => { navigate('Home'); setMobileMenu(false); }} className="block w-full text-left py-2 text-gray-700">হোম</button>
-                            <button onClick={() => { navigate('Category', { cat: 'Pesticides' }); setMobileMenu(false); }} className="block w-full text-left py-2 text-gray-700">কীটনাশক</button>
+                            <button onClick={() => { navigate('Category', { cat: 'Pesticides' }); setMobileMenu(false); }} className="block w-full text-left py-2 text-gray-700">কীটনাশক ও বালাইনাশক</button>
                             <button onClick={() => { navigate('Category', { cat: 'Seeds' }); setMobileMenu(false); }} className="block w-full text-left py-2 text-gray-700">বীজ</button>
-                            <button onClick={() => { navigate('Category', { cat: 'Fertilizer' }); setMobileMenu(false); }} className="block w-full text-left py-2 text-gray-700">জৈব সার</button>
+                            <button onClick={() => { navigate('Category', { cat: 'Fertilizer' }); setMobileMenu(false); }} className="block w-full text-left py-2 text-gray-700">জৈব সার ও রাসায়নিক সার</button>
                             <button onClick={() => { navigate('MyOrders'); setMobileMenu(false); }} className="block w-full text-left py-2 text-gray-700">আমার অর্ডার</button>
                             <button onClick={() => { navigate('Wishlist'); setMobileMenu(false); }} className="block w-full text-left py-2 text-gray-700">উইশলিস্ট</button>
                             {user && <button onClick={() => { user.role === 'admin' ? navigate('Admin') : navigate('Profile'); setMobileMenu(false); }} className="block w-full text-left py-2 text-gray-700">প্রোফাইল / ড্যাশবোর্ড</button>}
@@ -650,10 +650,10 @@
             <footer className="bg-agri-900 text-agri-50 pt-12 pb-6 mt-16">
                 <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-8">
                     <div className="md:col-span-1">
-                        <h3 className="text-xl font-bold mb-4 flex items-center"><i className="fa-solid fa-leaf mr-2"></i> কৃষি স্টোর</h3>
+                        <h3 className="text-xl font-bold mb-4 flex items-center"><i className="fa-solid fa-leaf mr-2"></i> কৃষক বাজার</h3>
                         <p className="text-agri-200 text-sm leading-relaxed">বাংলাদেশের কৃষকদের জন্য নির্ভরযোগ্য অনলাইন স্টোর। আমরা মানসম্মত বীজ, কীটনাশক এবং জৈব সার সরবরাহ করি।</p>
                         <div className="flex gap-3 mt-4">
-                            {[['fa-facebook-f','https://facebook.com'],['fa-whatsapp','https://wa.me/8801900000000'],['fa-youtube','https://youtube.com']].map(([ic,href]) => (
+                            {[['fa-facebook-f','https://www.facebook.com/share/17f47XVN8X/'],['fa-whatsapp','https://wa.me/8801773686642'],['fa-youtube','https://youtube.com/@tusarmahmud5289?si=wQEwEIE1cQzPhAOs']].map(([ic,href]) => (
                                 <a key={ic} href={href} target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-full bg-agri-800 hover:bg-agri-amber flex items-center justify-center transition"><i className={`fa-brands ${ic}`}></i></a>
                             ))}
                         </div>
@@ -661,9 +661,9 @@
                     <div>
                         <h3 className="text-lg font-bold mb-4 text-agri-amber">ক্যাটাগরি</h3>
                         <ul className="space-y-2 text-agri-200 text-sm">
-                            <li><button onClick={() => navigate('Category', { cat: 'Pesticides' })} className="hover:text-white transition">কীটনাশক</button></li>
+                            <li><button onClick={() => navigate('Category', { cat: 'Pesticides' })} className="hover:text-white transition">কীটনাশক ও বালাইনাশক</button></li>
                             <li><button onClick={() => navigate('Category', { cat: 'Seeds' })} className="hover:text-white transition">বীজ</button></li>
-                            <li><button onClick={() => navigate('Category', { cat: 'Fertilizer' })} className="hover:text-white transition">জৈব সার</button></li>
+                            <li><button onClick={() => navigate('Category', { cat: 'Fertilizer' })} className="hover:text-white transition">জৈব সার ও রাসায়নিক সার</button></li>
                         </ul>
                     </div>
                     <div>
@@ -677,14 +677,14 @@
                     <div>
                         <h3 className="text-lg font-bold mb-4 text-agri-amber">যোগাযোগ</h3>
                         <ul className="space-y-2 text-agri-200 text-sm">
-                            <li><i className="fa-solid fa-phone mr-2"></i> ০১৯০০-০০০০০০</li>
-                            <li><i className="fa-solid fa-envelope mr-2"></i> info@agristore.com.bd</li>
-                            <li><i className="fa-solid fa-location-dot mr-2"></i> ঢাকা, বাংলাদেশ</li>
+                            <li><i className="fa-solid fa-phone mr-2"></i> ০১৭৭৩-৬৮৬৬৪২</li>
+                            <li><i className="fa-solid fa-envelope mr-2"></i> Tusarmahmudkhan@gmail.com</li>
+                            <li><i className="fa-solid fa-location-dot mr-2"></i> শুভিপাড়া, পবা, রাজশাহী, বাংলাদেশ</li>
                         </ul>
                     </div>
                 </div>
                 <div className="text-center text-agri-400 mt-10 pt-4 border-t border-agri-800 text-sm">
-                    &copy; ২০২৬ কৃষি স্টোর। সর্বস্বত্ব সংরক্ষিত।
+                    &copy; ২০২৬ কৃষক বাজার। সর্বস্বত্ব সংরক্ষিত।
                 </div>
             </footer>
             );
@@ -937,9 +937,9 @@
         const CategoryCards = () => {
             const { navigate } = useContext(AppContext);
             const cats = [
-                { id: 'Pesticides', name: 'কীটনাশক', icon: 'fa-spray-can-sparkles', img: 'https://images.unsplash.com/photo-1530507629858-e4977d30e9e0?auto=format&fit=crop&w=600&q=80' },
-                { id: 'Seeds', name: 'বীজ', icon: 'fa-wheat-awn', img: 'https://images.unsplash.com/photo-1586281380349-632531db7ed4?auto=format&fit=crop&w=600&q=80' },
-                { id: 'Fertilizer', name: 'জৈব সার', icon: 'fa-leaf', img: 'https://images.unsplash.com/photo-1628352081506-83c43123ed6d?auto=format&fit=crop&w=600&q=80' },
+                { id: 'Pesticides', name: 'কীটনাশক', icon: 'fa-spray-can-sparkles', img: 'https://images.unsplash.com/photo-1628352081506-83c43123ed6d?auto=format&fit=crop&w=600&q=80' },
+                { id: 'Seeds', name: 'বীজ', icon: 'fa-wheat-awn', img: 'https://i.ibb.co.com/XfybW924/IMG-6484.jpg' },
+                { id: 'Fertilizer', name: 'জৈব সার', icon: 'fa-leaf', img: 'https://i.ibb.co.com/F4cd7Ybb/IMG-6485.jpg' },
             ];
             return (
                 <section className="max-w-7xl mx-auto px-4 py-12">
@@ -991,9 +991,9 @@
                     <FeaturesBar />
                     <CategoryCards />
                     <div id="products-section" className="bg-agri-cream py-10">
-                        <CategorySection title="কীটনাশক" filterCat="Pesticides" />
+                        <CategorySection title="কীটনাশক ও বালাইনাশক" filterCat="Pesticides" />
                         <CategorySection title="বীজ" filterCat="Seeds" />
-                        <CategorySection title="জৈব সার" filterCat="Fertilizer" />
+                        <CategorySection title="জৈব সার ও রাসায়নিক সার" filterCat="Fertilizer" />
                     </div>
                     <Newsletter />
                 </div>
@@ -1068,7 +1068,7 @@
         const SearchPage = ({ query }) => {
             const { products, navigate } = useContext(AppContext);
             const q = (query || '').toLowerCase();
-            const catName = { Pesticides: 'কীটনাশক', Seeds: 'বীজ', Fertilizer: 'জৈব সার' };
+            const catName = { Pesticides: 'কীটনাশক ও বালাইনাশক', Seeds: 'বীজ', Fertilizer: 'জৈব সার ও রাসায়নিক সার' };
             const results = products.filter(p =>
                 p.name.toLowerCase().includes(q) ||
                 (p.description || '').toLowerCase().includes(q) ||
@@ -1131,7 +1131,7 @@
                 </div>
             );
 
-            const catName = product.category === 'Pesticides' ? 'কীটনাশক' : product.category === 'Seeds' ? 'বীজ' : 'জৈব সার';
+            const catName = product.category === 'Pesticides' ? 'কীটনাশক ও বালাইনাশক' : product.category === 'Seeds' ? 'বীজ' : 'জৈব সার ও রাসায়নিক সার';
             const hasDiscount = product.oldPrice && product.oldPrice > product.price;
             const related = products.filter(p => p.category === product.category && p.id !== product.id).slice(0, 4);
             const buyNow = () => { addToCart(product, qty); setIsCartOpen(false); navigate('Checkout'); };
@@ -1291,7 +1291,7 @@
                 { id: 'bkash', label: 'বিকাশ', icon: 'fa-mobile-screen', color: 'text-pink-600' },
                 { id: 'nagad', label: 'নগদ', icon: 'fa-mobile-screen-button', color: 'text-orange-500' },
             ];
-            const payNumbers = { bkash: '01700-000000', nagad: '01800-000000' };
+            const payNumbers = { bkash: '01773686642', nagad: '01773686642' };
 
             return (
                 <div className="max-w-5xl mx-auto px-4 py-12 min-h-screen">
