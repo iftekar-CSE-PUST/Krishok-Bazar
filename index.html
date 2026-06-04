@@ -164,37 +164,46 @@
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         // =====================================================
-        // ===  SECURE ADMIN AUTH CONFIG  ===
+        // ===  SECURE AUTH CONFIG  ===
         // =====================================================
-        // Admin password is NOT stored in this frontend code anymore.
-        // Create this admin user in Supabase Auth and set role='admin' in public.users.
-        // Login screen can still use username: admin (it maps to this Supabase email).
-        const ADMIN_USERNAME = 'admin';
-        const ADMIN_AUTH_EMAIL = 'admin@krishokbazar.com';
-
-        const normalizeLoginEmail = (value) => {
-            const v = (value || '').trim().toLowerCase();
-            return v === ADMIN_USERNAME ? ADMIN_AUTH_EMAIL : v;
-        };
-
-        const getUserRoleFromSupabase = async (authUser) => {
-            if (!authUser) return 'user';
+        // No admin email/password is stored in this frontend code.
+        // Passwords are verified by Supabase Auth and admin access is decided by public.users.role.
+        const getUserProfileFromSupabase = async (authUser) => {
+            if (!authUser) return { role: 'user' };
             try {
-                // Requires a 'role' column in public.users. Admin row should have role = 'admin'.
+                // Best/secure method: RPC reads role from DB using auth.uid().
+                // This works even when public.users has RLS select restrictions.
+                const { data: rpcProfile, error: rpcError } = await supabaseClient.rpc('get_my_profile');
+                if (!rpcError && rpcProfile) {
+                    const p = Array.isArray(rpcProfile) ? rpcProfile[0] : rpcProfile;
+                    return {
+                        name: p?.name || authUser.user_metadata?.name || authUser.email?.split('@')[0] || 'User',
+                        email: p?.email || authUser.email,
+                        role: p?.role === 'admin' ? 'admin' : 'user'
+                    };
+                }
+                if (rpcError) console.warn('[Supabase RPC] get_my_profile failed, trying direct table:', rpcError.message);
+
+                // Fallback: direct table read (requires RLS select policy).
                 const { data, error } = await supabaseClient
                     .from('users')
                     .select('name,email,role')
                     .or(`auth_id.eq.${authUser.id},email.eq.${authUser.email}`)
+                    .limit(1)
                     .maybeSingle();
 
                 if (error) {
-                    console.warn('[Supabase Users] Role check failed:', error.message);
-                    return 'user';
+                    console.warn('[Supabase Users] Profile/role check failed:', error.message);
+                    return { role: 'user', email: authUser.email };
                 }
-                return data?.role === 'admin' ? 'admin' : 'user';
+                return {
+                    name: data?.name || authUser.user_metadata?.name || authUser.email?.split('@')[0] || 'User',
+                    email: data?.email || authUser.email,
+                    role: data?.role === 'admin' ? 'admin' : 'user'
+                };
             } catch (err) {
-                console.warn('[Supabase Users] Role check error:', err.message);
-                return 'user';
+                console.warn('[Supabase Users] Profile/role check error:', err.message);
+                return { role: 'user', email: authUser.email };
             }
         };
 
@@ -406,10 +415,10 @@
             },
 
             login: async (email, password) => {
-                const rawEmail = (email || '').trim();
-                const e = normalizeLoginEmail(rawEmail);
+                const e = (email || '').trim();
 
-                // Secure login: Supabase Auth only. No admin password is stored in this code.
+                // Secure login: Supabase Auth only. No admin email/password is stored in this code.
+                // Admin access comes from database role: public.users.role = 'admin'.
                 try {
                     const { data, error } = await supabaseClient.auth.signInWithPassword({
                         email: e,
@@ -417,32 +426,22 @@
                     });
                     if (error || !data?.user) throw error || new Error('Invalid credentials');
 
-                    // If the authenticated Supabase email is the configured admin email,
-                    // treat it as admin. Password is still verified only by Supabase Auth.
-                    const isAdminEmail = (data.user.email || '').toLowerCase() === ADMIN_AUTH_EMAIL.toLowerCase();
-                    const dbRole = await getUserRoleFromSupabase(data.user);
-                    const role = isAdminEmail ? 'admin' : dbRole;
-                    const isAdmin = role === 'admin';
-                    const name = isAdmin ? 'Admin Tusar' : (data.user.user_metadata?.name || data.user.email?.split('@')[0] || 'User');
+                    const profile = await getUserProfileFromSupabase(data.user);
+                    const role = profile.role === 'admin' ? 'admin' : 'user';
+                    const name = profile.name || data.user.user_metadata?.name || data.user.email?.split('@')[0] || 'User';
 
                     console.log('[Supabase Auth] ✅ Login success:', data.user.email, 'role:', role);
                     return {
                         id: data.user.id,
                         name,
-                        email: isAdmin ? ADMIN_USERNAME : data.user.email,
+                        email: profile.email || data.user.email,
                         role,
                         supabase: true
                     };
                 } catch (sbErr) {
                     console.warn('[Supabase Auth] Login failed:', sbErr?.message || sbErr);
+                    throw new Error('ভুল ইমেইল বা পাসওয়ার্ড / Invalid credentials');
                 }
-
-                // Normal users may still use localStorage fallback, but admin cannot.
-                const users = JSON.parse(localStorage.getItem('bolt_users') || '[]');
-                const user = users.find(u => u.email === rawEmail && u.password === BoltDB._hash(password));
-                if (user) return { id: user.id, name: user.name, email: user.email, role: 'user' };
-
-                throw new Error('ভুল ইমেইল বা পাসওয়ার্ড / Invalid credentials');
             },
 
             register: async (name, email, password) => {
@@ -450,48 +449,36 @@
                 if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)) throw new Error('সঠিক ইমেইল দিন / Enter a valid email');
                 if ((password || '').length < 6) throw new Error('পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে / Password must be at least 6 characters');
 
-                // Try Supabase Auth signup
-                try {
-                    const { data, error } = await supabaseClient.auth.signUp({
-                        email: e,
-                        password: password,
-                        options: { data: { name: name } }
-                    });
-                    if (!error && data?.user) {
-                        console.log('[Supabase Auth] ✅ Registration success:', data.user.email);
+                // Secure registration: Supabase Auth only. Password is never stored in frontend/localStorage.
+                const { data, error } = await supabaseClient.auth.signUp({
+                    email: e,
+                    password: password,
+                    options: { data: { name: name } }
+                });
 
-                        // Also save profile to 'users' table
-                        supabaseClient.from('users').insert({
-                            auth_id: data.user.id,
-                            name: name,
-                            email: e,
-                            registered_at: new Date().toISOString()
-                        }).then(({ error: pErr }) => {
-                            if (pErr) console.warn('[Supabase Users] Profile insert error:', pErr.message);
-                            else console.log('[Supabase Users] ✅ Profile saved');
-                        });
-
-                        return { id: data.user.id, role: 'user', name, email: e, supabase: true };
+                if (error || !data?.user) {
+                    console.warn('[Supabase Auth] Signup error:', error?.message || error);
+                    if ((error?.message || '').includes('already') || (error?.message || '').includes('exists')) {
+                        throw new Error('এই ইমেইলটি ব্যবহার করা হয়েছে / Email already exists');
                     }
-                    if (error) {
-                        console.warn('[Supabase Auth] Signup error:', error.message);
-                        // If it's a duplicate email error from Supabase
-                        if (error.message.includes('already') || error.message.includes('exists')) {
-                            throw new Error('এই ইমেইলটি ব্যবহার করা হয়েছে / Email already exists');
-                        }
-                    }
-                } catch (sbErr) {
-                    if (sbErr.message.includes('ইমেইল') || sbErr.message.includes('Email')) throw sbErr;
-                    console.warn('[Supabase Auth] Signup failed, falling back to localStorage:', sbErr.message);
+                    throw new Error(error?.message || 'রেজিস্ট্রেশন করা যায়নি / Registration failed');
                 }
 
-                // Fallback: localStorage registration
-                const users = JSON.parse(localStorage.getItem('bolt_users'));
-                if (users.find(u => u.email === e)) throw new Error('এই ইমেইলটি ব্যবহার করা হয়েছে / Email already exists');
-                const newUser = { id: Date.now(), name, email: e, password: BoltDB._hash(password), registeredAt: new Date().toISOString() };
-                users.push(newUser);
-                localStorage.setItem('bolt_users', JSON.stringify(users));
-                return { id: newUser.id, role: 'user', name, email: e };
+                console.log('[Supabase Auth] ✅ Registration success:', data.user.email);
+
+                // Save profile to database. role defaults to 'user'.
+                supabaseClient.from('users').insert({
+                    auth_id: data.user.id,
+                    name: name,
+                    email: e,
+                    role: 'user',
+                    registered_at: new Date().toISOString()
+                }).then(({ error: pErr }) => {
+                    if (pErr) console.warn('[Supabase Users] Profile insert error:', pErr.message);
+                    else console.log('[Supabase Users] ✅ Profile saved');
+                });
+
+                return { id: data.user.id, role: 'user', name, email: e, supabase: true };
             },
 
             getUsers: () => JSON.parse(localStorage.getItem('bolt_users')),
@@ -726,6 +713,28 @@
 
             // Persist session, cart and wishlist
             useEffect(() => { localStorage.setItem('bolt_session', JSON.stringify(user)); }, [user]);
+
+            // Re-check Supabase role on app start/session restore so old customer session becomes admin after DB role update.
+            useEffect(() => {
+                if (!user?.supabase) return;
+                let cancelled = false;
+                supabaseClient.auth.getUser().then(async ({ data }) => {
+                    if (cancelled || !data?.user) return;
+                    const profile = await getUserProfileFromSupabase(data.user);
+                    if (cancelled) return;
+                    const nextRole = profile.role === 'admin' ? 'admin' : 'user';
+                    if (nextRole !== user.role || (profile.name && profile.name !== user.name)) {
+                        setUser(prev => prev ? {
+                            ...prev,
+                            name: profile.name || prev.name,
+                            email: profile.email || prev.email,
+                            role: nextRole
+                        } : prev);
+                    }
+                }).catch(err => console.warn('[Session Role Refresh] failed:', err.message));
+                return () => { cancelled = true; };
+            }, [user?.id, user?.supabase]);
+
             useEffect(() => { localStorage.setItem('bolt_cart', JSON.stringify(cart)); }, [cart]);
             useEffect(() => { localStorage.setItem('bolt_wishlist', JSON.stringify(wishlist)); }, [wishlist]);
             // Scroll to top on navigation
@@ -2750,6 +2759,6 @@ const MyOrders = () => {
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<App />);
     </script>
-<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v833ccba57c9e4d2798f2e76cebdd09a11778172276447" integrity="sha512-57MDmcccJXYtNnH+ZiBwzC4jb2rvgVCEokYN+L/nLlmO8rfYT/gIpW2A569iJ/3b+0UEasghjuZH/ma3wIs/EQ==" data-cf-beacon='{"version":"2024.11.0","token":"1954b47c125f43f8b4338b3c4f804e4f","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a06a16d8ca35df8d',t:'MTc4MDYwOTE1NQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a06a51f09f1c2fb9',t:'MTc4MDYxMTU3Ng=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script defer src="https://static.cloudflareinsights.com/beacon.min.js/v833ccba57c9e4d2798f2e76cebdd09a11778172276447" integrity="sha512-57MDmcccJXYtNnH+ZiBwzC4jb2rvgVCEokYN+L/nLlmO8rfYT/gIpW2A569iJ/3b+0UEasghjuZH/ma3wIs/EQ==" data-cf-beacon='{"version":"2024.11.0","token":"1954b47c125f43f8b4338b3c4f804e4f","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+</body>
 </html>
