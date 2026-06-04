@@ -253,9 +253,8 @@
             // ── Orders: localStorage + Supabase sync ──
             getOrders: () => JSON.parse(localStorage.getItem('bolt_orders')),
 
-            saveOrder: (order) => {
-                // 1) Build the order locally
-                const orders = BoltDB.getOrders();
+            saveOrder: async (order) => {
+                // 1) Build the order
                 order.id = 'ORD-' + Math.floor(Math.random() * 1000000);
                 order.date = new Date().toISOString();
                 order.status = 'Pending';
@@ -263,81 +262,100 @@
                 deliveryDate.setDate(deliveryDate.getDate() + 5);
                 order.estimatedDelivery = deliveryDate.toISOString();
 
+                // 2) PRIMARY: Insert into Supabase (source of truth)
+                try {
+                    const { error } = await supabaseClient.from('orders').insert({
+                        order_id: order.id,
+                        user_id: String(order.userId || 'guest'),
+                        customer_name: order.customerInfo?.name || '',
+                        customer_phone: order.customerInfo?.phone || '',
+                        customer_address: order.customerInfo?.address || '',
+                        customer_district: order.customerInfo?.district || '',
+                        customer_note: order.customerInfo?.note || '',
+                        items: order.items,
+                        subtotal: order.subtotal,
+                        delivery_charge: order.deliveryCharge,
+                        total: order.total,
+                        payment_method: order.paymentMethod,
+                        transaction_id: order.transactionId || null,
+                        status: order.status,
+                        estimated_delivery: order.estimatedDelivery,
+                        created_at: order.date
+                    });
+
+                    if (error) throw error;
+                    console.log('[Supabase Orders] ✅ Order saved & real-time broadcast:', order.id);
+                } catch (err) {
+                    console.warn('[Supabase Orders] Insert failed, using localStorage fallback:', err.message);
+                }
+
+                // 3) SECONDARY: Always save to localStorage as backup cache
+                const orders = BoltDB.getOrders();
                 orders.push(order);
                 localStorage.setItem('bolt_orders', JSON.stringify(orders));
-
-                // 2) Async push to Supabase (fire-and-forget, localStorage is source of truth)
-                supabaseClient.from('orders').insert({
-                    order_id: order.id,
-                    user_id: String(order.userId || 'guest'),
-                    customer_name: order.customerInfo?.name || '',
-                    customer_phone: order.customerInfo?.phone || '',
-                    customer_address: order.customerInfo?.address || '',
-                    customer_district: order.customerInfo?.district || '',
-                    customer_note: order.customerInfo?.note || '',
-                    items: order.items,
-                    subtotal: order.subtotal,
-                    delivery_charge: order.deliveryCharge,
-                    total: order.total,
-                    payment_method: order.paymentMethod,
-                    transaction_id: order.transactionId || null,
-                    status: order.status,
-                    estimated_delivery: order.estimatedDelivery,
-                    created_at: order.date
-                }).then(({ error }) => {
-                    if (error) console.warn('[Supabase Orders] Insert error:', error.message);
-                    else console.log('[Supabase Orders] ✅ Order synced:', order.id);
-                });
 
                 return order;
             },
 
-            updateOrderStatus: (id, status) => {
+            updateOrderStatus: async (id, status) => {
+                // PRIMARY: Update Supabase (source of truth)
+                const { error } = await supabaseClient.from('orders').update({ status })
+                    .eq('order_id', id);
+
+                if (error) {
+                    console.warn('[Supabase Orders] Status update error:', error.message);
+                    return false;
+                }
+
+                console.log('[Supabase Orders] ✅ Status updated & broadcasted:', id, '->', status);
+
+                // SECONDARY: Update localStorage cache
                 const orders = BoltDB.getOrders();
                 const order = orders.find(o => o.id === id);
                 if (order) order.status = status;
                 localStorage.setItem('bolt_orders', JSON.stringify(orders));
 
-                // Sync status update to Supabase
-                supabaseClient.from('orders').update({ status })
-                    .eq('order_id', id)
-                    .then(({ error }) => {
-                        if (error) console.warn('[Supabase Orders] Status update error:', error.message);
-                        else console.log('[Supabase Orders] ✅ Status updated:', id, '->', status);
-                    });
+                return true;
             },
 
-            deleteOrder: (id) => {
-                // 1) Remove from localStorage
+            deleteOrder: async (id) => {
+                // PRIMARY: Update Supabase (single source of truth)
+                const { error } = await supabaseClient
+                    .from('orders')
+                    .update({ status: 'Deleted' })
+                    .eq('order_id', id);
+
+                if (error) {
+                    console.warn('[Supabase] Delete error:', error.message);
+                    return false;
+                }
+                console.log('[Supabase] ✅ Marked as Deleted in DB:', id);
+
+                // SECONDARY: Clean localStorage cache
                 let stored = JSON.parse(localStorage.getItem('bolt_orders') || '[]');
                 stored = stored.filter(o => o.id !== id);
                 localStorage.setItem('bolt_orders', JSON.stringify(stored));
-                console.log('[BoltDB] ✅ Deleted from localStorage:', id);
 
-                // 2) Update status to 'Deleted' in Supabase (acting as soft delete)
-                supabaseClient
-                    .from('orders')
-                    .update({ status: 'Deleted' })
-                    .eq('order_id', id)
-                    .then(({ error }) => {
-                        if (error) console.warn('[Supabase] Delete (update) error:', error.message);
-                        else console.log('[Supabase] ✅ Marked as Deleted in DB:', id);
-                    });
+                return true;
             },
 
-            cancelOrder: (id) => {
+            cancelOrder: async (id) => {
                 const orders = BoltDB.getOrders();
                 const order = orders.find(o => o.id === id);
                 if (order && (order.status === 'Pending' || order.status === 'Processing')) {
-                    order.status = 'Cancelled';
-                    localStorage.setItem('bolt_orders', JSON.stringify(orders));
-                    supabaseClient.from('orders').update({ status: 'Cancelled' })
-                        .eq('order_id', id)
-                        .then(({ error }) => {
-                            if (error) console.warn('[Supabase Orders] Cancel error:', error.message);
-                            else console.log('[Supabase Orders] ✅ Order cancelled:', id);
-                        });
-                    return true;
+                    // PRIMARY: Update Supabase
+                    const { error } = await supabaseClient.from('orders').update({ status: 'Cancelled' })
+                        .eq('order_id', id);
+
+                    if (!error) {
+                        console.log('[Supabase Orders] ✅ Order cancelled & broadcasted:', id);
+                        // SECONDARY: Update localStorage cache
+                        order.status = 'Cancelled';
+                        localStorage.setItem('bolt_orders', JSON.stringify(orders));
+                        return true;
+                    } else {
+                        console.warn('[Supabase Orders] Cancel error:', error.message);
+                    }
                 }
                 return false;
             },
@@ -438,6 +456,77 @@
         };
         BoltDB.init();
 
+        // ──────────────────────────────────────────────
+        // ===  SUPABASE REALTIME UTILITY  ===
+        // ──────────────────────────────────────────────
+        // Subscribe to real-time order changes across all clients
+        const subscribeToOrderChanges = (callback) => {
+            const channel = supabaseClient
+                .channel('orders-realtime')
+                .on('postgres_changes',
+                    { event: 'UPDATE', schema: 'public', table: 'orders' },
+                    (payload) => {
+                        console.log('[🔴 Realtime] Order updated:', payload.new?.order_id, '→', payload.new?.status);
+                        callback({ type: 'UPDATE', old: payload.old, new: payload.new });
+                    }
+                )
+                .on('postgres_changes',
+                    { event: 'INSERT', schema: 'public', table: 'orders' },
+                    (payload) => {
+                        console.log('[🟢 Realtime] New order:', payload.new?.order_id);
+                        callback({ type: 'INSERT', new: payload.new });
+                    }
+                )
+                .subscribe((status, err) => {
+                    if (err) console.warn('[Realtime] Subscribe error:', err);
+                    else console.log('[Realtime] ✅ Channel status:', status);
+                });
+
+            return channel;
+        };
+
+        // ──────────────────────────────────────────────
+        // ===  FETCH ALL ORDERS FROM SUPABASE  ===
+        // ──────────────────────────────────────────────
+        const fetchAllOrdersFromSupabase = async () => {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('orders')
+                    .select('*')
+                    .neq('status', 'Deleted')
+                    .order('created_at', { ascending: false });
+
+                if (!error && data) {
+                    const mapped = data.map(o => ({
+                        id: o.order_id,
+                        userId: o.user_id,
+                        customerInfo: {
+                            name: o.customer_name,
+                            phone: o.customer_phone,
+                            address: o.customer_address,
+                            district: o.customer_district,
+                            note: o.customer_note
+                        },
+                        items: o.items || [],
+                        subtotal: Number(o.subtotal),
+                        deliveryCharge: Number(o.delivery_charge),
+                        total: Number(o.total),
+                        paymentMethod: o.payment_method,
+                        transactionId: o.transaction_id,
+                        status: o.status,
+                        date: o.created_at,
+                        estimatedDelivery: o.estimated_delivery
+                    }));
+                    // Sync localStorage cache
+                    localStorage.setItem('bolt_orders', JSON.stringify(mapped));
+                    return mapped;
+                }
+            } catch (err) {
+                console.warn('[Supabase] Fetch all orders failed:', err.message);
+            }
+            return JSON.parse(localStorage.getItem('bolt_orders') || '[]');
+        };
+
         // --- App Context ---
         const AppContext = createContext();
 
@@ -458,6 +547,7 @@
             const [isCartOpen, setIsCartOpen] = useState(false);
             const [products, setProducts] = useState(BoltDB.getProducts());
             const [toasts, setToasts] = useState([]);
+            const [allOrders, setAllOrders] = useState([]);
 
             // Load products from Supabase on app start (so customers see real-time data)
             useEffect(() => {
@@ -465,6 +555,55 @@
                     if (prods) setProducts(prods);
                 });
             }, []);
+
+            // ── Real-time Orders Subscription ──
+            // This runs once on mount and broadcasts changes to ALL components
+            useEffect(() => {
+                // Initial load of all orders from Supabase
+                fetchAllOrdersFromSupabase().then(orders => {
+                    if (orders) setAllOrders(orders);
+                });
+
+                // Subscribe to real-time changes
+                const channel = subscribeToOrderChanges(async (change) => {
+                    console.log('[Realtime] 🔔 Change received:', change.type, change.new?.order_id);
+
+                    // Refresh the full orders list from Supabase
+                    const freshOrders = await fetchAllOrdersFromSupabase();
+                    if (freshOrders) setAllOrders(freshOrders);
+
+                    // Notify the logged-in user about relevant changes
+                    if (change.type === 'UPDATE' && change.new && user) {
+                        const orderUserId = String(change.new.user_id);
+                        const currentUserId = String(user.id);
+
+                        if (change.new.status === 'Deleted') {
+                            if (orderUserId === currentUserId) {
+                                notify(`⚠️ আপনার অর্ডার ${change.new.order_id} অ্যাডমিন কর্তৃক মুছে ফেলা হয়েছে।`, 'error');
+                            } else {
+                                notify(`🗑️ অর্ডার ${change.new.order_id} সিস্টেম থেকে মুছে ফেলা হয়েছে।`, 'info');
+                            }
+                        } else if (change.new.status === 'Cancelled' && orderUserId === currentUserId) {
+                            notify(`ℹ️ আপনার অর্ডার ${change.new.order_id} বাতিল করা হয়েছে।`, 'info');
+                        }
+                    }
+                });
+
+                return () => {
+                    console.log('[Realtime] Unsubscribing channel...');
+                    supabaseClient.removeChannel(channel);
+                };
+            }, []); // Only mount once
+
+            // Re-run notifications when user changes
+            useEffect(() => {
+                // When user logs in, refresh orders
+                if (user) {
+                    fetchAllOrdersFromSupabase().then(orders => {
+                        if (orders) setAllOrders(orders);
+                    });
+                }
+            }, [user?.id]);
 
             // Persist session, cart and wishlist
             useEffect(() => { localStorage.setItem('bolt_session', JSON.stringify(user)); }, [user]);
@@ -530,7 +669,7 @@
             const grandTotal = cartTotal + deliveryCharge;
 
             return (
-                <AppContext.Provider value={{ route, navigate, user, setUser, cart, addToCart, updateCartQuantity, removeFromCart, clearCart, cartTotal, cartCount, deliveryCharge, grandTotal, isCartOpen, setIsCartOpen, products, refreshProducts, wishlist, toggleWishlist, isWishlisted, notify, toasts }}>
+                <AppContext.Provider value={{ route, navigate, user, setUser, cart, addToCart, updateCartQuantity, removeFromCart, clearCart, cartTotal, cartCount, deliveryCharge, grandTotal, isCartOpen, setIsCartOpen, products, refreshProducts, wishlist, toggleWishlist, isWishlisted, notify, toasts, allOrders, setAllOrders }}>
                     {children}
                     <ToastContainer toasts={toasts} />
                 </AppContext.Provider>
@@ -1281,8 +1420,8 @@
                 setSubmitting(true);
 
                 try {
-                    // 1) Save order locally + Supabase
-                    const newOrder = BoltDB.saveOrder({
+                    // 1) Save order to Supabase (primary) + localStorage (cache)
+                    const newOrder = await BoltDB.saveOrder({
                         userId: user?.id || 'guest',
                         customerInfo: formData,
                         items: cart,
@@ -1560,10 +1699,36 @@
                             return;
                         }
                     } catch (err) { /* fallback below */ }
-                    const allOrders = BoltDB.getOrders();
-                    setOrders(allOrders.filter(o => o.userId === user.id).reverse());
                 };
                 loadProfileOrders();
+
+                // ── Real-time subscription for profile orders ──
+                const channel = supabaseClient
+                    .channel('profile-orders-realtime')
+                    .on('postgres_changes',
+                        { event: 'UPDATE', schema: 'public', table: 'orders', filter: `user_id=eq.${String(user.id)}` },
+                        (payload) => {
+                            const updated = payload.new;
+                            if (updated?.status === 'Deleted') {
+                                setOrders(prev => prev.filter(o => o.id !== updated.order_id));
+                                notify(`⚠️ আপনার অর্ডার ${updated.order_id} অ্যাডমিন কর্তৃক মুছে ফেলা হয়েছে!`, 'error');
+                            } else if (updated) {
+                                setOrders(prev => prev.map(o => o.id === updated.order_id ? {
+                                    id: updated.order_id, userId: updated.user_id,
+                                    customerInfo: { name: updated.customer_name, phone: updated.customer_phone, address: updated.customer_address, district: updated.customer_district },
+                                    items: updated.items || [], total: Number(updated.total), deliveryCharge: Number(updated.delivery_charge),
+                                    paymentMethod: updated.payment_method, transactionId: updated.transaction_id,
+                                    status: updated.status, date: updated.created_at, estimatedDelivery: updated.estimated_delivery
+                                } : o));
+                                notify(`📦 অর্ডার ${updated.order_id} স্ট্যাটাস: "${updated.status}"`, 'success');
+                            }
+                        }
+                    )
+                    .subscribe();
+
+                return () => {
+                    supabaseClient.removeChannel(channel);
+                };
             }, [user]);
 
             const handleLogout = () => { setUser(null); notify('লগআউট হয়েছে', 'info'); navigate('Home'); };
@@ -1651,58 +1816,45 @@
                 return 'bg-gray-100 text-gray-700';
             };
 
-            const handleDelete = (orderId) => {
-                if (!confirm(`অর্ডার ${orderId} মুছে ফেলবেন?`)) return;
+            const handleDelete = async (orderId) => {
+                if (!confirm(`অর্ডার ${orderId} মুছে ফেলবেন? এটি কাস্টমারের অ্যাকাউন্ট থেকেও রিয়েল-টাইমে মুছে যাবে।`)) return;
 
-                // Step 1 — remove from UI immediately
+                // Step 1 — remove from UI immediately (optimistic update)
                 setAdminOrders(prev => prev.filter(o => o.id !== orderId));
 
-                // Step 2 — remove from localStorage
-                let stored = JSON.parse(localStorage.getItem('bolt_orders') || '[]');
-                stored = stored.filter(o => o.id !== orderId);
-                localStorage.setItem('bolt_orders', JSON.stringify(stored));
-                console.log('[Delete] localStorage updated. Remaining:', stored.length);
-
-                // Step 3 — update status to 'Deleted' in Supabase (acting as soft delete)
-                supabaseClient
-                    .from('orders')
-                    .update({ status: 'Deleted' })
-                    .eq('order_id', orderId)
-                    .then(({ error, data }) => {
-                        if (error) console.warn('[Delete] Supabase error:', error.message);
-                        else console.log('[Delete] Supabase marked as Deleted:', orderId);
-                    });
+                // Step 2 — Update Supabase (primary source of truth)
+                // This will trigger a real-time event that broadcasts to ALL clients
+                const success = await BoltDB.deleteOrder(orderId);
+                
+                if (success) {
+                    console.log('[Delete] ✅ Order deleted & broadcasted to all clients:', orderId);
+                } else {
+                    console.warn('[Delete] ❌ Failed to delete order in Supabase:', orderId);
+                    alert('ডিলিট করতে সমস্যা হয়েছে। আবার চেষ্টা করুন।');
+                }
             };
 
-            const handleDeleteAll = () => {
-                if (!confirm(`সব ${orders.length}টি অর্ডার মুছে ফেলবেন?`)) return;
+            const handleDeleteAll = async () => {
+                if (!confirm(`সব ${orders.length}টি অর্ডার মুছে ফেলবেন? এটি সব কাস্টমারের অ্যাকাউন্ট থেকেও রিয়েল-টাইমে মুছে যাবে।`)) return;
                 const ids = orders.map(o => o.id);
 
-                // Step 1 — clear UI
+                // Step 1 — clear UI immediately
                 setAdminOrders([]);
 
-                // Step 2 — clear localStorage
-                localStorage.setItem('bolt_orders', JSON.stringify([]));
-                console.log('[DeleteAll] localStorage cleared');
-
-                // Step 3 — update status to 'Deleted' in Supabase one by one
-                ids.forEach(id => {
-                    supabaseClient
-                        .from('orders')
-                        .update({ status: 'Deleted' })
-                        .eq('order_id', id)
-                        .then(({ error }) => {
-                            if (error) console.warn('[DeleteAll] Supabase error for', id, ':', error.message);
-                            else console.log('[DeleteAll] Supabase marked as Deleted:', id);
-                        });
-                });
+                // Step 2 — Delete each from Supabase (primary source of truth)
+                const results = await Promise.all(ids.map(id => BoltDB.deleteOrder(id)));
+                const successCount = results.filter(Boolean).length;
+                console.log(`[DeleteAll] ✅ ${successCount}/${ids.length} orders deleted & broadcasted`);
             };
 
-            const handleStatusChange = (orderId, newStatus) => {
-                // Update UI
+            const handleStatusChange = async (orderId, newStatus) => {
+                // Update UI immediately (optimistic)
                 setAdminOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
-                // Sync
-                BoltDB.updateOrderStatus(orderId, newStatus);
+                // Sync to Supabase (will broadcast to customer in real-time)
+                const success = await BoltDB.updateOrderStatus(orderId, newStatus);
+                if (!success) {
+                    console.warn('[Status] Failed to update status');
+                }
             };
 
             return (
@@ -1817,53 +1969,44 @@
                 setAdminProducts(prods || BoltDB.getProducts());
                 setAdminUsers(BoltDB.getUsers());
 
-                // ── Orders: Fetch from Supabase first, fallback to localStorage ──
-                try {
-                    const { data, error } = await supabaseClient
-                        .from('orders')
-                        .select('*')
-                        .neq('status', 'Deleted')
-                        .order('created_at', { ascending: false });
-
-                    if (!error && data && data.length > 0) {
-                        // Map Supabase columns back to the format the dashboard expects
-                        const sbOrders = data.map(o => ({
-                            id: o.order_id,
-                            userId: o.user_id,
-                            customerInfo: {
-                                name: o.customer_name,
-                                phone: o.customer_phone,
-                                address: o.customer_address,
-                                district: o.customer_district,
-                                note: o.customer_note
-                            },
-                            items: o.items || [],
-                            subtotal: Number(o.subtotal),
-                            deliveryCharge: Number(o.delivery_charge),
-                            total: Number(o.total),
-                            paymentMethod: o.payment_method,
-                            transactionId: o.transaction_id,
-                            status: o.status,
-                            date: o.created_at,
-                            estimatedDelivery: o.estimated_delivery
-                        }));
-                        setAdminOrders(sbOrders);
-                        console.log('[Admin] ✅ Orders loaded from Supabase:', sbOrders.length);
-                        return;
-                    }
-                    if (error) console.warn('[Admin] Supabase orders fetch error:', error.message);
-                } catch (err) {
-                    console.warn('[Admin] Supabase fetch failed, using localStorage:', err.message);
-                }
-
-                // Fallback: use localStorage orders
-                setAdminOrders(BoltDB.getOrders());
+                // ── Orders: Fetch from Supabase (single source of truth) ──
+                const orders = await fetchAllOrdersFromSupabase();
+                setAdminOrders(orders || []);
             };
 
             useEffect(() => {
                 if (!user || user.role !== 'admin') navigate('Home');
                 else loadData();
             }, [user, activeTab]);
+
+            // ── Real-time: Admin sees new orders & status changes instantly ──
+            useEffect(() => {
+                if (!user || user.role !== 'admin') return;
+
+                const channel = supabaseClient
+                    .channel('admin-orders-realtime')
+                    .on('postgres_changes',
+                        { event: 'INSERT', schema: 'public', table: 'orders' },
+                        async (payload) => {
+                            console.log('[Admin 🔴] New order received:', payload.new?.order_id);
+                            const orders = await fetchAllOrdersFromSupabase();
+                            setAdminOrders(orders || []);
+                        }
+                    )
+                    .on('postgres_changes',
+                        { event: 'UPDATE', schema: 'public', table: 'orders' },
+                        async (payload) => {
+                            console.log('[Admin 🔴] Order updated:', payload.new?.order_id, '→', payload.new?.status);
+                            const orders = await fetchAllOrdersFromSupabase();
+                            setAdminOrders(orders || []);
+                        }
+                    )
+                    .subscribe();
+
+                return () => {
+                    supabaseClient.removeChannel(channel);
+                };
+            }, [user]);
 
             const handleLogout = () => { setUser(null); navigate('Home'); };
 
@@ -2175,7 +2318,7 @@ const MyOrders = () => {
         if (!user) { navigate('Auth'); return; }
 
         const loadOrders = async () => {
-            // Try Supabase first for real-time cross-device orders
+            // Primary: Supabase (single source of truth)
             try {
                 const { data, error } = await supabaseClient
                     .from('orders')
@@ -2209,25 +2352,52 @@ const MyOrders = () => {
                     console.log('[MyOrders] ✅ Loaded from Supabase:', sbOrders.length);
                     return;
                 }
+                if (error) console.warn('[MyOrders] Supabase fetch error:', error.message);
             } catch (err) {
-                console.warn('[MyOrders] Supabase fetch failed, using localStorage');
+                console.warn('[MyOrders] Supabase fetch failed');
             }
-
-            // Fallback: localStorage
-            const allOrders = BoltDB.getOrders();
-            setOrders(allOrders.filter(o => o.userId === user.id).reverse());
         };
 
         loadOrders();
+
+        // ── Real-time subscription for this customer's orders ──
+        const channel = supabaseClient
+            .channel('myorders-realtime')
+            .on('postgres_changes',
+                { event: 'UPDATE', schema: 'public', table: 'orders', filter: `user_id=eq.${String(user.id)}` },
+                (payload) => {
+                    const updated = payload.new;
+                    console.log('[MyOrders 🔴] Real-time update:', updated?.order_id, updated?.status);
+
+                    if (updated?.status === 'Deleted') {
+                        // Immediately remove the deleted order from UI
+                        setOrders(prev => prev.filter(o => o.id !== updated.order_id));
+                        notify(`⚠️ আপনার অর্ডার ${updated.order_id} অ্যাডমিন কর্তৃক মুছে ফেলা হয়েছে!`, 'error');
+                    } else if (updated?.status === 'Cancelled') {
+                        setOrders(prev => prev.map(o => o.id === updated.order_id ? { ...o, status: 'Cancelled' } : o));
+                        notify(`ℹ️ আপনার অর্ডার ${updated.order_id} বাতিল করা হয়েছে।`, 'info');
+                    } else {
+                        // Status update (e.g., Processing → Shipped)
+                        setOrders(prev => prev.map(o => o.id === updated.order_id ? { ...o, status: updated.status } : o));
+                        notify(`📦 আপনার অর্ডার ${updated.order_id} এখন "${updated.status}"`, 'success');
+                    }
+                }
+            )
+            .subscribe();
+
+        return () => {
+            console.log('[MyOrders] Unsubscribing real-time channel...');
+            supabaseClient.removeChannel(channel);
+        };
     }, [user]);
 
     if (!user) return null;
 
     const payBn = { cod: 'ক্যাশ অন ডেলিভারি', bkash: 'বিকাশ', nagad: 'নগদ' };
 
-    const handleCancelOrder = (orderId) => {
+    const handleCancelOrder = async (orderId) => {
         if (!confirm('আপনি কি সত্যিই এই অর্ডারটি বাতিল করতে চান?')) return;
-        const success = BoltDB.cancelOrder(orderId);
+        const success = await BoltDB.cancelOrder(orderId);
         if (success) {
             setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: 'Cancelled' } : o));
             notify('অর্ডারটি সফলভাবে বাতিল করা হয়েছে।', 'info');
@@ -2376,5 +2546,6 @@ const MyOrders = () => {
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<App />);
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a05e468ebbe8d977',t:'MTc4MDQ4NTI4MQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a05e57451ed1f5a8',t:'MTc4MDQ4NTk2NQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a05e468ebbe8d977',t:'MTc4MDQ4NTI4MQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a05e57451ed1f5a8',t:'MTc4MDQ4NTk2NQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a068f4bd9c886038',t:'MTc4MDU5NzI3Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script defer src="https://static.cloudflareinsights.com/beacon.min.js/v833ccba57c9e4d2798f2e76cebdd09a11778172276447" integrity="sha512-57MDmcccJXYtNnH+ZiBwzC4jb2rvgVCEokYN+L/nLlmO8rfYT/gIpW2A569iJ/3b+0UEasghjuZH/ma3wIs/EQ==" data-cf-beacon='{"version":"2024.11.0","token":"1954b47c125f43f8b4338b3c4f804e4f","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+</body>
 </html>
