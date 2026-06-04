@@ -207,30 +207,21 @@
             }
         };
 
-        // --- Mock Products (local – managed by admin via localStorage) ---
-        const MOCK_PRODUCTS = [
-            { id: 1, name: 'সবুজ সাথী কীটনাশক', category: 'Pesticides', price: 450, oldPrice: 520, unit: '৫০০ মিলি', rating: 4.5, stock: 50, image: 'https://images.unsplash.com/photo-1586771107445-d3ca888129ff?auto=format&fit=crop&w=400&q=80', description: 'উচ্চ ক্ষমতাসম্পন্ন কীটনাশক, ফসলের পোকা দমনে অত্যন্ত কার্যকর।' },
-            { id: 2, name: 'উন্নত ধানের বীজ', category: 'Seeds', price: 1200, oldPrice: 0, unit: '১০ কেজি', rating: 4.8, stock: 100, image: 'https://images.unsplash.com/photo-1586281380349-632531db7ed4?auto=format&fit=crop&w=400&q=80', description: 'উচ্চ ফলনশীল বোরো ধানের বীজ। ভালো অঙ্কুরোদগম হার।' },
-            { id: 3, name: 'জৈব কম্পোস্ট সার', category: 'Fertilizer', price: 300, oldPrice: 350, unit: '২৫ কেজি', rating: 4.6, stock: 200, image: 'https://images.unsplash.com/photo-1628352081506-83c43123ed6d?auto=format&fit=crop&w=400&q=80', description: 'মাটির উর্বরতা বৃদ্ধিতে ১০০% প্রাকৃতিক ও রাসায়নিক মুক্ত সার।' },
-            { id: 4, name: 'লাল তীরের টমেটো বীজ', category: 'Seeds', price: 150, oldPrice: 0, unit: '১০ গ্রাম', rating: 4.4, stock: 80, image: 'https://images.unsplash.com/photo-1592841200221-a6898f307baa?auto=format&fit=crop&w=400&q=80', description: 'হাইব্রিড টমেটো বীজ, প্রতিটি গাছে প্রচুর ফলন।' },
-            { id: 5, name: 'ছত্রাকনাশক প্রোটেক্ট প্লাস', category: 'Pesticides', price: 380, oldPrice: 0, unit: '২৫০ গ্রাম', rating: 4.3, stock: 60, image: 'https://images.unsplash.com/photo-1530507629858-e4977d30e9e0?auto=format&fit=crop&w=400&q=80', description: 'ব্লাস্ট ও পাতা পচা রোগ প্রতিরোধে কার্যকর ছত্রাকনাশক।' },
-            { id: 6, name: 'হাইব্রিড ভুট্টা বীজ', category: 'Seeds', price: 850, oldPrice: 950, unit: '৫ কেজি', rating: 4.7, stock: 70, image: 'https://images.unsplash.com/photo-1551754655-cd27e38d2076?auto=format&fit=crop&w=400&q=80', description: 'উচ্চ ফলনশীল হাইব্রিড ভুট্টা বীজ, খরা সহনশীল।' },
-            { id: 7, name: 'ইউরিয়া সার (প্রিমিয়াম)', category: 'Fertilizer', price: 1100, oldPrice: 0, unit: '৫০ কেজি', rating: 4.5, stock: 150, image: 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?auto=format&fit=crop&w=400&q=80', description: 'উচ্চ মানের নাইট্রোজেন সমৃদ্ধ ইউরিয়া সার, দ্রুত বৃদ্ধির জন্য।' },
-            { id: 8, name: 'মরিচের উন্নত বীজ', category: 'Seeds', price: 220, oldPrice: 280, unit: '২০ গ্রাম', rating: 4.6, stock: 90, image: 'https://images.unsplash.com/photo-1583119022894-919a68a3d0e3?auto=format&fit=crop&w=400&q=80', description: 'ঝাল ও ফলন দুটোই বেশি, রোগ প্রতিরোধী কাঁচা মরিচের বীজ।' },
-            { id: 9, name: 'ভার্মি কম্পোস্ট (কেঁচো সার)', category: 'Fertilizer', price: 260, oldPrice: 0, unit: '১০ কেজি', rating: 4.9, stock: 120, image: 'https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?auto=format&fit=crop&w=400&q=80', description: 'সম্পূর্ণ জৈব কেঁচো সার, সবজি ও ফল চাষে আদর্শ।' },
-            { id: 10, name: 'আগাছানাশক উইড ক্লিন', category: 'Pesticides', price: 520, oldPrice: 0, unit: '১ লিটার', rating: 4.2, stock: 0, image: 'https://images.unsplash.com/photo-1492496913980-501348b61469?auto=format&fit=crop&w=400&q=80', description: 'ক্ষেতের অবাঞ্ছিত আগাছা দূর করতে নিরাপদ ও কার্যকর।' },
-        ];
+        // --- Product data is NOT stored in code anymore. Products are loaded from Supabase only.
+        // Keep this empty so hackers/view-source cannot see product data in this HTML file.
+        const MOCK_PRODUCTS = [];
 
         // =====================================================
         // ===  BOLTDB — Now syncs with Supabase  ===
         // =====================================================
         const BoltDB = {
             init: () => {
-                if (!localStorage.getItem('bolt_products')) localStorage.setItem('bolt_products', JSON.stringify(MOCK_PRODUCTS));
+                // Only empty caches are initialized. Real data must come from Supabase tables.
+                if (!localStorage.getItem('bolt_products')) localStorage.setItem('bolt_products', JSON.stringify([]));
                 if (!localStorage.getItem('bolt_orders')) localStorage.setItem('bolt_orders', JSON.stringify([]));
                 if (!localStorage.getItem('bolt_users')) localStorage.setItem('bolt_users', JSON.stringify([]));
             },
-            getProducts: () => JSON.parse(localStorage.getItem('bolt_products')),
+            getProducts: () => JSON.parse(localStorage.getItem('bolt_products') || '[]'),
 
             // ── Fetch products from Supabase (called on app init & refresh) ──
             fetchProductsFromSupabase: async () => {
@@ -254,7 +245,7 @@
                 } catch (err) {
                     console.warn('[Supabase Products] Fetch failed, using localStorage:', err.message);
                 }
-                return JSON.parse(localStorage.getItem('bolt_products'));
+                return [];
             },
 
             saveProduct: (p) => {
@@ -295,7 +286,8 @@
             },
 
             // ── Orders: localStorage + Supabase sync ──
-            getOrders: () => JSON.parse(localStorage.getItem('bolt_orders')),
+            // Orders are database-only; do not expose/cache all orders in browser localStorage.
+            getOrders: () => [],
 
             saveOrder: async (order) => {
                 // 1) Build the order
@@ -333,11 +325,6 @@
                     console.warn('[Supabase Orders] Insert failed, using localStorage fallback:', err.message);
                 }
 
-                // 3) SECONDARY: Always save to localStorage as backup cache
-                const orders = BoltDB.getOrders();
-                orders.push(order);
-                localStorage.setItem('bolt_orders', JSON.stringify(orders));
-
                 return order;
             },
 
@@ -352,12 +339,6 @@
                 }
 
                 console.log('[Supabase Orders] ✅ Status updated & broadcasted:', id, '->', status);
-
-                // SECONDARY: Update localStorage cache
-                const orders = BoltDB.getOrders();
-                const order = orders.find(o => o.id === id);
-                if (order) order.status = status;
-                localStorage.setItem('bolt_orders', JSON.stringify(orders));
 
                 return true;
             },
@@ -375,34 +356,26 @@
                 }
                 console.log('[Supabase] ✅ Marked as Deleted in DB:', id);
 
-                // SECONDARY: Clean localStorage cache
-                let stored = JSON.parse(localStorage.getItem('bolt_orders') || '[]');
-                stored = stored.filter(o => o.id !== id);
-                localStorage.setItem('bolt_orders', JSON.stringify(stored));
-
                 return true;
             },
 
             cancelOrder: async (id) => {
-                const orders = BoltDB.getOrders();
-                const order = orders.find(o => o.id === id);
-                if (order && (order.status === 'Pending' || order.status === 'Processing')) {
-                    // PRIMARY: Update Supabase
-                    const { error } = await supabaseClient.from('orders').update({ status: 'Cancelled' })
-                        .eq('order_id', id);
+                // Database-only order cancellation. Supabase is the source of truth.
+                const { data, error } = await supabaseClient
+                    .from('orders')
+                    .update({ status: 'Cancelled' })
+                    .eq('order_id', id)
+                    .in('status', ['Pending', 'Processing'])
+                    .select('order_id')
+                    .maybeSingle();
 
-                    if (!error) {
-                        console.log('[Supabase Orders] ✅ Order cancelled & broadcasted:', id);
-                        // SECONDARY: Update localStorage cache
-                        order.status = 'Cancelled';
-                        localStorage.setItem('bolt_orders', JSON.stringify(orders));
-                        return true;
-                    } else {
-                        console.warn('[Supabase Orders] Cancel error:', error.message);
-                    }
+                if (error) {
+                    console.warn('[Supabase Orders] Cancel error:', error.message);
+                    return false;
                 }
-                return false;
+                return !!data;
             },
+
 
             // ── Authentication: Supabase Auth + localStorage fallback ──
             _hash: (str) => {
@@ -481,7 +454,8 @@
                 return { id: data.user.id, role: 'user', name, email: e, supabase: true };
             },
 
-            getUsers: () => JSON.parse(localStorage.getItem('bolt_users')),
+            // User list is database-only; do not expose/cache all users in browser localStorage.
+            getUsers: () => [],
 
             // ── Fetch users from Supabase (admin panel + realtime) ──
             fetchUsersFromSupabase: async () => {
@@ -497,17 +471,32 @@
                             email: u.email,
                             registeredAt: u.registered_at
                         }));
-                        localStorage.setItem('bolt_users', JSON.stringify(mapped));
                         console.log('[Supabase Users] ✅ Loaded', mapped.length, 'users');
                         return mapped;
                     }
                 } catch (err) {
                     console.warn('[Supabase Users] Fetch failed, using localStorage:', err.message);
                 }
-                return JSON.parse(localStorage.getItem('bolt_users') || '[]');
+                return [];
             }
         };
         BoltDB.init();
+
+        // ── Store settings: contact, social links, payment numbers are DB-only ──
+        const fetchStoreSettingsFromSupabase = async () => {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('store_settings')
+                    .select('key,value');
+                if (error) throw error;
+                const obj = {};
+                (data || []).forEach(row => { obj[row.key] = row.value || ''; });
+                return obj;
+            } catch (err) {
+                console.warn('[Store Settings] Fetch failed:', err.message);
+                return {};
+            }
+        };
 
         // ──────────────────────────────────────────────
         // ===  SUPABASE REALTIME UTILITY  ===
@@ -578,6 +567,24 @@
             return channel;
         };
 
+        // Subscribe to real-time STORE SETTINGS changes (contact/social/payment numbers)
+        const subscribeToStoreSettingsChanges = (callback) => {
+            const channel = supabaseClient
+                .channel(makeRealtimeChannelName('store-settings-realtime'))
+                .on('postgres_changes',
+                    { event: '*', schema: 'public', table: 'store_settings' },
+                    (payload) => {
+                        console.log('[🟢 Realtime] Store setting change:', payload.eventType, payload.new?.key || payload.old?.key);
+                        callback({ type: payload.eventType, old: payload.old, new: payload.new });
+                    }
+                )
+                .subscribe((status, err) => {
+                    if (err) console.warn('[Realtime Store Settings] Subscribe error:', err);
+                    else console.log('[Realtime Store Settings] ✅ Channel status:', status);
+                });
+            return channel;
+        };
+
         // ──────────────────────────────────────────────
         // ===  FETCH ALL ORDERS FROM SUPABASE  ===
         // ──────────────────────────────────────────────
@@ -610,14 +617,12 @@
                         date: o.created_at,
                         estimatedDelivery: o.estimated_delivery
                     }));
-                    // Sync localStorage cache
-                    localStorage.setItem('bolt_orders', JSON.stringify(mapped));
                     return mapped;
                 }
             } catch (err) {
                 console.warn('[Supabase] Fetch all orders failed:', err.message);
             }
-            return JSON.parse(localStorage.getItem('bolt_orders') || '[]');
+            return [];
         };
 
         // --- App Context ---
@@ -642,6 +647,23 @@
             const [products, setProducts] = useState(BoltDB.getProducts());
             const [toasts, setToasts] = useState([]);
             const [allOrders, setAllOrders] = useState([]);
+            const [settings, setSettings] = useState({});
+
+            useEffect(() => {
+                fetchStoreSettingsFromSupabase().then(setSettings);
+
+                // ── Real-time Store Settings Subscription ──
+                // Any update in Supabase store_settings instantly updates footer/payment/contact info.
+                const channel = subscribeToStoreSettingsChanges(async () => {
+                    const freshSettings = await fetchStoreSettingsFromSupabase();
+                    setSettings(freshSettings || {});
+                });
+
+                return () => {
+                    console.log('[Realtime] Unsubscribing store settings channel...');
+                    supabaseClient.removeChannel(channel);
+                };
+            }, []);
 
             // Load products from Supabase on app start + subscribe to real-time changes
             useEffect(() => {
@@ -797,7 +819,7 @@
             const grandTotal = cartTotal + deliveryCharge;
 
             return (
-                <AppContext.Provider value={{ route, navigate, user, setUser, cart, addToCart, updateCartQuantity, removeFromCart, clearCart, cartTotal, cartCount, deliveryCharge, grandTotal, isCartOpen, setIsCartOpen, products, refreshProducts, wishlist, toggleWishlist, isWishlisted, notify, toasts, allOrders, setAllOrders }}>
+                <AppContext.Provider value={{ route, navigate, user, setUser, cart, addToCart, updateCartQuantity, removeFromCart, clearCart, cartTotal, cartCount, deliveryCharge, grandTotal, isCartOpen, setIsCartOpen, products, refreshProducts, wishlist, toggleWishlist, isWishlisted, notify, toasts, allOrders, setAllOrders, settings, setSettings }}>
                     {children}
                     <ToastContainer toasts={toasts} />
                 </AppContext.Provider>
@@ -947,7 +969,7 @@
         };
 
         const Footer = () => {
-            const { navigate } = useContext(AppContext);
+            const { navigate, settings } = useContext(AppContext);
             return (
             <footer className="bg-agri-900 text-agri-50 pt-12 pb-6 mt-16">
                 <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-8">
@@ -955,7 +977,11 @@
                         <h3 className="text-xl font-bold mb-4 flex items-center"><i className="fa-solid fa-leaf mr-2"></i> কৃষক বাজার</h3>
                         <p className="text-agri-200 text-sm leading-relaxed">বাংলাদেশের কৃষকদের জন্য নির্ভরযোগ্য অনলাইন স্টোর। আমরা মানসম্মত বীজ, কীটনাশক এবং জৈব সার সরবরাহ করি।</p>
                         <div className="flex gap-3 mt-4">
-                            {[['fa-facebook-f','https://www.facebook.com/share/17f47XVN8X/'],['fa-whatsapp','https://wa.me/8801773686642'],['fa-youtube','https://youtube.com/@tusarmahmud5289?si=wQEwEIE1cQzPhAOs']].map(([ic,href]) => (
+                            {[
+                                ['fa-facebook-f', settings.facebook_url],
+                                ['fa-whatsapp', settings.whatsapp_url],
+                                ['fa-youtube', settings.youtube_url]
+                            ].filter(([ic, href]) => href).map(([ic,href]) => (
                                 <a key={ic} href={href} target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-full bg-agri-800 hover:bg-agri-amber flex items-center justify-center transition"><i className={`fa-brands ${ic}`}></i></a>
                             ))}
                         </div>
@@ -979,9 +1005,9 @@
                     <div>
                         <h3 className="text-lg font-bold mb-4 text-agri-amber">যোগাযোগ</h3>
                         <ul className="space-y-2 text-agri-200 text-sm">
-                            <li><i className="fa-solid fa-phone mr-2"></i> ০১৭৭৩-৬৮৬৬৪২</li>
-                            <li><i className="fa-solid fa-envelope mr-2"></i> Tusarmahmudkhan@gmail.com</li>
-                            <li><i className="fa-solid fa-location-dot mr-2"></i> শুভিপাড়া, পবা, রাজশাহী, বাংলাদেশ</li>
+                            {settings.phone && <li><i className="fa-solid fa-phone mr-2"></i> {settings.phone}</li>}
+                            {settings.email && <li><i className="fa-solid fa-envelope mr-2"></i> {settings.email}</li>}
+                            {settings.address && <li><i className="fa-solid fa-location-dot mr-2"></i> {settings.address}</li>}
                         </ul>
                     </div>
                 </div>
@@ -1521,7 +1547,7 @@
         };
 
         const Checkout = () => {
-            const { cart, cartTotal, deliveryCharge, grandTotal, clearCart, navigate, user, notify } = useContext(AppContext);
+            const { cart, cartTotal, deliveryCharge, grandTotal, clearCart, navigate, user, notify, settings } = useContext(AppContext);
             const [formData, setFormData] = useState({ name: user?.name || '', phone: '', address: '', district: '', note: '' });
             const [payment, setPayment] = useState('cod');
             const [txnId, setTxnId] = useState('');
@@ -1627,7 +1653,7 @@
                 { id: 'bkash', label: 'বিকাশ', icon: 'fa-mobile-screen', color: 'text-pink-600' },
                 { id: 'nagad', label: 'নগদ', icon: 'fa-mobile-screen-button', color: 'text-orange-500' },
             ];
-            const payNumbers = { bkash: '01773686642', nagad: '01773686642' };
+            const payNumbers = { bkash: settings.bkash_number || '', nagad: settings.nagad_number || '' };
 
             return (
                 <div className="max-w-5xl mx-auto px-4 py-12 min-h-screen">
@@ -1680,7 +1706,7 @@
                                 {payment !== 'cod' && (
                                     <div className="mt-4 bg-agri-50 rounded-lg p-4 text-sm">
                                         <p className="mb-2">নিচের <span className="font-bold">{payment === 'bkash' ? 'বিকাশ' : 'নগদ'}</span> পার্সোনাল নম্বরে <span className="font-bold text-agri-700">{grandTotal} ৳</span> Send Money করুন:</p>
-                                        <p className="text-lg font-bold text-agri-800 mb-3">{payNumbers[payment]}</p>
+                                        <p className="text-lg font-bold text-agri-800 mb-3">{payNumbers[payment] || 'Payment number not configured'}</p>
                                         <label className="block text-gray-700 font-bold mb-1">ট্রানজেকশন আইডি (TrxID)</label>
                                         <input type="text" value={txnId} onChange={e => setTxnId(e.target.value)} className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-agri-500" placeholder="যেমন: 9XK4T2P1" />
                                         {errors.txnId && <p className={errCls}>{errors.txnId}</p>}
@@ -2402,7 +2428,7 @@
                         <div className="bg-white rounded-xl shadow-sm border border-red-200 p-6">
                             <h3 className="font-bold text-red-600 mb-2"><i className="fa-solid fa-triangle-exclamation mr-2"></i>Danger Zone</h3>
                             <p className="text-sm text-gray-500 mb-4">Reset all products to defaults. This cannot be undone.</p>
-                            <button onClick={async () => { if(confirm('Reset products to defaults? This deletes all custom products.')) { localStorage.setItem('bolt_products', JSON.stringify(MOCK_PRODUCTS)); await supabaseClient.from('products').delete().neq('id', 0); for (const p of MOCK_PRODUCTS) { await supabaseClient.from('products').upsert({ id: p.id, name: p.name, category: p.category, price: p.price, old_price: p.oldPrice || 0, unit: p.unit, rating: p.rating, stock: p.stock, image: p.image, description: p.description, updated_at: new Date().toISOString() }, { onConflict: 'id' }); } loadData(); refreshProducts(); } }} className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-bold">Reset Products</button>
+                            <button onClick={async () => { if(confirm('Delete all products from Supabase? This cannot be undone.')) { localStorage.setItem('bolt_products', JSON.stringify([])); await supabaseClient.from('products').delete().neq('id', 0); loadData(); refreshProducts(); } }} className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-bold">Delete All Products</button>
                         </div>
                     </div>
                 );
@@ -2759,6 +2785,6 @@ const MyOrders = () => {
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<App />);
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a06a51f09f1c2fb9',t:'MTc4MDYxMTU3Ng=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script defer src="https://static.cloudflareinsights.com/beacon.min.js/v833ccba57c9e4d2798f2e76cebdd09a11778172276447" integrity="sha512-57MDmcccJXYtNnH+ZiBwzC4jb2rvgVCEokYN+L/nLlmO8rfYT/gIpW2A569iJ/3b+0UEasghjuZH/ma3wIs/EQ==" data-cf-beacon='{"version":"2024.11.0","token":"1954b47c125f43f8b4338b3c4f804e4f","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
-</body>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v833ccba57c9e4d2798f2e76cebdd09a11778172276447" integrity="sha512-57MDmcccJXYtNnH+ZiBwzC4jb2rvgVCEokYN+L/nLlmO8rfYT/gIpW2A569iJ/3b+0UEasghjuZH/ma3wIs/EQ==" data-cf-beacon='{"version":"2024.11.0","token":"1954b47c125f43f8b4338b3c4f804e4f","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a06a6b98c9e92fb9',t:'MTc4MDYxMjYyNw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
