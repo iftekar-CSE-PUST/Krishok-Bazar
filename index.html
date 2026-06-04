@@ -163,6 +163,41 @@
         const SUPABASE_ANON_KEY = 'sb_publishable_hAGBxe_XeiWGmEr0Jt6iUQ_MVeVA0Ws';
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+        // =====================================================
+        // ===  SECURE ADMIN AUTH CONFIG  ===
+        // =====================================================
+        // Admin password is NOT stored in this frontend code anymore.
+        // Create this admin user in Supabase Auth and set role='admin' in public.users.
+        // Login screen can still use username: admin (it maps to this Supabase email).
+        const ADMIN_USERNAME = 'admin';
+        const ADMIN_AUTH_EMAIL = 'admin@krishokbazar.com';
+
+        const normalizeLoginEmail = (value) => {
+            const v = (value || '').trim().toLowerCase();
+            return v === ADMIN_USERNAME ? ADMIN_AUTH_EMAIL : v;
+        };
+
+        const getUserRoleFromSupabase = async (authUser) => {
+            if (!authUser) return 'user';
+            try {
+                // Requires a 'role' column in public.users. Admin row should have role = 'admin'.
+                const { data, error } = await supabaseClient
+                    .from('users')
+                    .select('name,email,role')
+                    .or(`auth_id.eq.${authUser.id},email.eq.${authUser.email}`)
+                    .maybeSingle();
+
+                if (error) {
+                    console.warn('[Supabase Users] Role check failed:', error.message);
+                    return 'user';
+                }
+                return data?.role === 'admin' ? 'admin' : 'user';
+            } catch (err) {
+                console.warn('[Supabase Users] Role check error:', err.message);
+                return 'user';
+            }
+        };
+
         // --- Mock Products (local – managed by admin via localStorage) ---
         const MOCK_PRODUCTS = [
             { id: 1, name: 'সবুজ সাথী কীটনাশক', category: 'Pesticides', price: 450, oldPrice: 520, unit: '৫০০ মিলি', rating: 4.5, stock: 50, image: 'https://images.unsplash.com/photo-1586771107445-d3ca888129ff?auto=format&fit=crop&w=400&q=80', description: 'উচ্চ ক্ষমতাসম্পন্ন কীটনাশক, ফসলের পোকা দমনে অত্যন্ত কার্যকর।' },
@@ -371,33 +406,40 @@
             },
 
             login: async (email, password) => {
-                const e = (email || '').trim();
+                const rawEmail = (email || '').trim();
+                const e = normalizeLoginEmail(rawEmail);
 
-                // Admin credentials (hashed, obfuscated — static-site only)
-                const ADMIN_EMAIL_HASH = '34c836145';
-                const ADMIN_PASS_HASH = '20dcd320a';
-                if (BoltDB._hash(e) === ADMIN_EMAIL_HASH && BoltDB._hash(password) === ADMIN_PASS_HASH) {
-                    return { id: 1, role: 'admin', name: 'Admin Riad' };
-                }
-
-                // Try Supabase Auth first
+                // Secure login: Supabase Auth only. No admin password is stored in this code.
                 try {
                     const { data, error } = await supabaseClient.auth.signInWithPassword({
                         email: e,
                         password: password
                     });
-                    if (!error && data?.user) {
-                        const name = data.user.user_metadata?.name || data.user.email?.split('@')[0] || 'User';
-                        console.log('[Supabase Auth] ✅ Login success:', data.user.email);
-                        return { id: data.user.id, name, email: data.user.email, role: 'user', supabase: true };
-                    }
+                    if (error || !data?.user) throw error || new Error('Invalid credentials');
+
+                    // If the authenticated Supabase email is the configured admin email,
+                    // treat it as admin. Password is still verified only by Supabase Auth.
+                    const isAdminEmail = (data.user.email || '').toLowerCase() === ADMIN_AUTH_EMAIL.toLowerCase();
+                    const dbRole = await getUserRoleFromSupabase(data.user);
+                    const role = isAdminEmail ? 'admin' : dbRole;
+                    const isAdmin = role === 'admin';
+                    const name = isAdmin ? 'Admin Tusar' : (data.user.user_metadata?.name || data.user.email?.split('@')[0] || 'User');
+
+                    console.log('[Supabase Auth] ✅ Login success:', data.user.email, 'role:', role);
+                    return {
+                        id: data.user.id,
+                        name,
+                        email: isAdmin ? ADMIN_USERNAME : data.user.email,
+                        role,
+                        supabase: true
+                    };
                 } catch (sbErr) {
-                    console.warn('[Supabase Auth] Login attempt failed, falling back to localStorage:', sbErr.message);
+                    console.warn('[Supabase Auth] Login failed:', sbErr?.message || sbErr);
                 }
 
-                // Fallback to localStorage users
-                const users = JSON.parse(localStorage.getItem('bolt_users'));
-                const user = users.find(u => u.email === e && u.password === BoltDB._hash(password));
+                // Normal users may still use localStorage fallback, but admin cannot.
+                const users = JSON.parse(localStorage.getItem('bolt_users') || '[]');
+                const user = users.find(u => u.email === rawEmail && u.password === BoltDB._hash(password));
                 if (user) return { id: user.id, name: user.name, email: user.email, role: 'user' };
 
                 throw new Error('ভুল ইমেইল বা পাসওয়ার্ড / Invalid credentials');
@@ -452,17 +494,45 @@
                 return { id: newUser.id, role: 'user', name, email: e };
             },
 
-            getUsers: () => JSON.parse(localStorage.getItem('bolt_users'))
+            getUsers: () => JSON.parse(localStorage.getItem('bolt_users')),
+
+            // ── Fetch users from Supabase (admin panel + realtime) ──
+            fetchUsersFromSupabase: async () => {
+                try {
+                    const { data, error } = await supabaseClient
+                        .from('users')
+                        .select('*')
+                        .order('registered_at', { ascending: false });
+                    if (!error && data) {
+                        const mapped = data.map(u => ({
+                            id: u.auth_id || u.id,
+                            name: u.name,
+                            email: u.email,
+                            registeredAt: u.registered_at
+                        }));
+                        localStorage.setItem('bolt_users', JSON.stringify(mapped));
+                        console.log('[Supabase Users] ✅ Loaded', mapped.length, 'users');
+                        return mapped;
+                    }
+                } catch (err) {
+                    console.warn('[Supabase Users] Fetch failed, using localStorage:', err.message);
+                }
+                return JSON.parse(localStorage.getItem('bolt_users') || '[]');
+            }
         };
         BoltDB.init();
 
         // ──────────────────────────────────────────────
         // ===  SUPABASE REALTIME UTILITY  ===
         // ──────────────────────────────────────────────
+        // Unique channel names prevent Supabase from reusing an already-subscribed channel.
+        // Reusing the same channel name can cause: "cannot add postgres_changes callbacks ... after subscribe()".
+        const makeRealtimeChannelName = (base) => `${base}-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
         // Subscribe to real-time order changes across all clients
         const subscribeToOrderChanges = (callback) => {
             const channel = supabaseClient
-                .channel('orders-realtime')
+                .channel(makeRealtimeChannelName('orders-realtime'))
                 .on('postgres_changes',
                     { event: 'UPDATE', schema: 'public', table: 'orders' },
                     (payload) => {
@@ -482,6 +552,42 @@
                     else console.log('[Realtime] ✅ Channel status:', status);
                 });
 
+            return channel;
+        };
+
+        // Subscribe to real-time PRODUCT changes (INSERT / UPDATE / DELETE)
+        const subscribeToProductChanges = (callback) => {
+            const channel = supabaseClient
+                .channel(makeRealtimeChannelName('products-realtime'))
+                .on('postgres_changes',
+                    { event: '*', schema: 'public', table: 'products' },
+                    (payload) => {
+                        console.log('[🟢 Realtime] Product change:', payload.eventType, payload.new?.name || payload.old?.id);
+                        callback({ type: payload.eventType, old: payload.old, new: payload.new });
+                    }
+                )
+                .subscribe((status, err) => {
+                    if (err) console.warn('[Realtime Products] Subscribe error:', err);
+                    else console.log('[Realtime Products] ✅ Channel status:', status);
+                });
+            return channel;
+        };
+
+        // Subscribe to real-time USER changes (INSERT / UPDATE / DELETE)
+        const subscribeToUserChanges = (callback) => {
+            const channel = supabaseClient
+                .channel(makeRealtimeChannelName('users-realtime'))
+                .on('postgres_changes',
+                    { event: '*', schema: 'public', table: 'users' },
+                    (payload) => {
+                        console.log('[🟢 Realtime] User change:', payload.eventType, payload.new?.email || payload.old?.id);
+                        callback({ type: payload.eventType, old: payload.old, new: payload.new });
+                    }
+                )
+                .subscribe((status, err) => {
+                    if (err) console.warn('[Realtime Users] Subscribe error:', err);
+                    else console.log('[Realtime Users] ✅ Channel status:', status);
+                });
             return channel;
         };
 
@@ -532,6 +638,7 @@
 
         const DELIVERY_CHARGE = 60;
         const FREE_DELIVERY_THRESHOLD = 2000;
+        const asArray = (value, fallback = []) => Array.isArray(value) ? value : fallback;
 
         const AppProvider = ({ children }) => {
             const [route, setRoute] = useState({ page: 'Home', params: {} });
@@ -549,11 +656,23 @@
             const [toasts, setToasts] = useState([]);
             const [allOrders, setAllOrders] = useState([]);
 
-            // Load products from Supabase on app start (so customers see real-time data)
+            // Load products from Supabase on app start + subscribe to real-time changes
             useEffect(() => {
                 BoltDB.fetchProductsFromSupabase().then(prods => {
                     if (prods) setProducts(prods);
                 });
+
+                // ── Real-time Products Subscription (live for ALL clients) ──
+                const channel = subscribeToProductChanges(async (change) => {
+                    console.log('[Realtime] 🔔 Product change received:', change.type);
+                    const freshProducts = await BoltDB.fetchProductsFromSupabase();
+                    if (freshProducts) setProducts(freshProducts);
+                });
+
+                return () => {
+                    console.log('[Realtime] Unsubscribing products channel...');
+                    supabaseClient.removeChannel(channel);
+                };
             }, []);
 
             // ── Real-time Orders Subscription ──
@@ -1704,7 +1823,7 @@
 
                 // ── Real-time subscription for profile orders ──
                 const channel = supabaseClient
-                    .channel('profile-orders-realtime')
+                    .channel(makeRealtimeChannelName('profile-orders-realtime'))
                     .on('postgres_changes',
                         { event: 'UPDATE', schema: 'public', table: 'orders', filter: `user_id=eq.${String(user.id)}` },
                         (payload) => {
@@ -1750,7 +1869,7 @@
                         <div>
                             <h2 className="text-xl font-bold">স্বাগতম, {user.name}</h2>
                             <p className="text-gray-600 text-sm">ইমেইল: {user.email || '-'}</p>
-                            <p className="text-gray-500 text-sm">মোট অর্ডার: {orders.length} টি</p>
+                            <p className="text-gray-500 text-sm">মোট অর্ডার: {asArray(orders).length} টি</p>
                         </div>
                     </div>
 
@@ -1835,7 +1954,7 @@
             };
 
             const handleDeleteAll = async () => {
-                if (!confirm(`সব ${orders.length}টি অর্ডার মুছে ফেলবেন? এটি সব কাস্টমারের অ্যাকাউন্ট থেকেও রিয়েল-টাইমে মুছে যাবে।`)) return;
+                if (!confirm(`সব ${asArray(orders).length}টি অর্ডার মুছে ফেলবেন? এটি সব কাস্টমারের অ্যাকাউন্ট থেকেও রিয়েল-টাইমে মুছে যাবে।`)) return;
                 const ids = orders.map(o => o.id);
 
                 // Step 1 — clear UI immediately
@@ -1862,7 +1981,7 @@
                     <div className="flex justify-between items-center mb-6 flex-wrap gap-3">
                         <h2 className="text-2xl font-bold">
                             Orders Management
-                            <span className="ml-3 text-sm font-normal text-gray-500 bg-gray-100 px-2 py-1 rounded-full">{orders.length} টি অর্ডার</span>
+                            <span className="ml-3 text-sm font-normal text-gray-500 bg-gray-100 px-2 py-1 rounded-full">{asArray(orders).length} টি অর্ডার</span>
                         </h2>
                         {orders.length > 0 && (
                             <button
@@ -1959,32 +2078,57 @@
             const [products, setAdminProducts] = useState([]);
             const [orders, setAdminOrders] = useState([]);
             const [users, setAdminUsers] = useState([]);
+            const [adminLoading, setAdminLoading] = useState(false);
+            const [adminError, setAdminError] = useState('');
+
+            const asArray = (value, fallback = []) => Array.isArray(value) ? value : fallback;
 
             // Form states
             const [showProductForm, setShowProductForm] = useState(false);
             const [editProduct, setEditProduct] = useState(null);
             
             const loadData = async () => {
-                const prods = await BoltDB.fetchProductsFromSupabase();
-                setAdminProducts(prods || BoltDB.getProducts());
-                setAdminUsers(BoltDB.getUsers());
+                setAdminLoading(true);
+                setAdminError('');
+                try {
+                    const localProducts = asArray(BoltDB.getProducts(), []);
+                    const localUsers = asArray(BoltDB.getUsers(), []);
 
-                // ── Orders: Fetch from Supabase (single source of truth) ──
-                const orders = await fetchAllOrdersFromSupabase();
-                setAdminOrders(orders || []);
+                    const prods = await BoltDB.fetchProductsFromSupabase();
+                    setAdminProducts(asArray(prods, localProducts));
+
+                    // ── Users: Fetch from Supabase (single source of truth) ──
+                    const usrs = await BoltDB.fetchUsersFromSupabase();
+                    setAdminUsers(asArray(usrs, localUsers));
+
+                    // ── Orders: Fetch from Supabase (single source of truth) ──
+                    const fetchedOrders = await fetchAllOrdersFromSupabase();
+                    setAdminOrders(asArray(fetchedOrders, []));
+                } catch (err) {
+                    console.error('[Admin] loadData failed:', err);
+                    setAdminError(err?.message || 'Admin data load failed');
+                    setAdminProducts(asArray(BoltDB.getProducts(), []));
+                    setAdminUsers(asArray(BoltDB.getUsers(), []));
+                    try { setAdminOrders(asArray(BoltDB.getOrders(), [])); } catch { setAdminOrders([]); }
+                } finally {
+                    setAdminLoading(false);
+                }
             };
 
             useEffect(() => {
-                if (!user || user.role !== 'admin') navigate('Home');
-                else loadData();
-            }, [user, activeTab]);
+                if (!user || user.role !== 'admin') {
+                    navigate('Home');
+                    return;
+                }
+                loadData();
+            }, [user?.id, user?.role, activeTab]);
 
             // ── Real-time: Admin sees new orders & status changes instantly ──
             useEffect(() => {
                 if (!user || user.role !== 'admin') return;
 
                 const channel = supabaseClient
-                    .channel('admin-orders-realtime')
+                    .channel(makeRealtimeChannelName('admin-orders-realtime'))
                     .on('postgres_changes',
                         { event: 'INSERT', schema: 'public', table: 'orders' },
                         async (payload) => {
@@ -2003,14 +2147,30 @@
                     )
                     .subscribe();
 
+                // ── Real-time: Admin sees product changes instantly ──
+                const productsChannel = subscribeToProductChanges(async () => {
+                    const prods = await BoltDB.fetchProductsFromSupabase();
+                    setAdminProducts(prods || BoltDB.getProducts());
+                });
+
+                // ── Real-time: Admin sees new/updated users instantly ──
+                const usersChannel = subscribeToUserChanges(async () => {
+                    const usrs = await BoltDB.fetchUsersFromSupabase();
+                    setAdminUsers(usrs || BoltDB.getUsers());
+                });
+
                 return () => {
                     supabaseClient.removeChannel(channel);
+                    supabaseClient.removeChannel(productsChannel);
+                    supabaseClient.removeChannel(usersChannel);
                 };
             }, [user]);
 
             const handleLogout = () => { setUser(null); navigate('Home'); };
 
-            const totalRevenue = orders.reduce((sum, o) => sum + o.total, 0);
+            if (!user || user.role !== 'admin') return null;
+
+            const totalRevenue = asArray(orders).reduce((sum, o) => sum + (Number(o?.total) || 0), 0);
 
             // Image Upload → Supabase Storage (with base64 fallback)
             const handleImageUpload = async (e, callback) => {
@@ -2123,11 +2283,11 @@
                         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
                             <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center">
                                 <div className="p-4 bg-blue-100 text-blue-600 rounded-lg mr-4"><i className="fa-solid fa-box text-2xl"></i></div>
-                                <div><p className="text-gray-500 text-sm font-bold">Total Products</p><h3 className="text-2xl font-bold">{products.length}</h3></div>
+                                <div><p className="text-gray-500 text-sm font-bold">Total Products</p><h3 className="text-2xl font-bold">{asArray(products).length}</h3></div>
                             </div>
                             <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center">
                                 <div className="p-4 bg-yellow-100 text-yellow-600 rounded-lg mr-4"><i className="fa-solid fa-shopping-bag text-2xl"></i></div>
-                                <div><p className="text-gray-500 text-sm font-bold">Total Orders</p><h3 className="text-2xl font-bold">{orders.length}</h3></div>
+                                <div><p className="text-gray-500 text-sm font-bold">Total Orders</p><h3 className="text-2xl font-bold">{asArray(orders).length}</h3></div>
                             </div>
                             <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center">
                                 <div className="p-4 bg-green-100 text-green-600 rounded-lg mr-4"><i className="fa-solid fa-money-bill-wave text-2xl"></i></div>
@@ -2135,7 +2295,7 @@
                             </div>
                             <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center">
                                 <div className="p-4 bg-purple-100 text-purple-600 rounded-lg mr-4"><i className="fa-solid fa-users text-2xl"></i></div>
-                                <div><p className="text-gray-500 text-sm font-bold">Registered Users</p><h3 className="text-2xl font-bold">{users.length}</h3></div>
+                                <div><p className="text-gray-500 text-sm font-bold">Registered Users</p><h3 className="text-2xl font-bold">{asArray(users).length}</h3></div>
                             </div>
                         </div>
                         {products.filter(p => p.stock > 0 && p.stock <= 10).length > 0 && (
@@ -2262,7 +2422,19 @@
                     </div>
                     {/* Content */}
                     <div className="flex-1 overflow-y-auto p-8 text-gray-800">
-                        {renderContent()}
+                        {adminError && (
+                            <div className="mb-4 bg-red-50 border border-red-200 text-red-700 rounded-lg p-3 text-sm font-semibold">
+                                <i className="fa-solid fa-circle-exclamation mr-2"></i>{adminError}
+                            </div>
+                        )}
+                        {adminLoading ? (
+                            <div className="min-h-[50vh] flex items-center justify-center text-gray-500">
+                                <div className="text-center">
+                                    <i className="fa-solid fa-circle-notch fa-spin text-4xl text-green-600 mb-3"></i>
+                                    <p className="font-semibold">Admin data loading...</p>
+                                </div>
+                            </div>
+                        ) : renderContent()}
                     </div>
                 </div>
             );
@@ -2362,7 +2534,7 @@ const MyOrders = () => {
 
         // ── Real-time subscription for this customer's orders ──
         const channel = supabaseClient
-            .channel('myorders-realtime')
+            .channel(makeRealtimeChannelName('myorders-realtime'))
             .on('postgres_changes',
                 { event: 'UPDATE', schema: 'public', table: 'orders', filter: `user_id=eq.${String(user.id)}` },
                 (payload) => {
@@ -2535,17 +2707,49 @@ const MyOrders = () => {
             );
         };
 
+        // Prevent a component error from turning the whole page into a blank white screen
+        class ErrorBoundary extends React.Component {
+            constructor(props) {
+                super(props);
+                this.state = { hasError: false, error: null };
+            }
+            static getDerivedStateFromError(error) {
+                return { hasError: true, error };
+            }
+            componentDidCatch(error, info) {
+                console.error('[UI ErrorBoundary]', error, info);
+            }
+            render() {
+                if (this.state.hasError) {
+                    return (
+                        <div className="min-h-screen bg-red-50 flex items-center justify-center p-6">
+                            <div className="bg-white border border-red-200 rounded-2xl shadow-xl p-6 max-w-lg w-full text-center">
+                                <i className="fa-solid fa-triangle-exclamation text-red-500 text-4xl mb-3"></i>
+                                <h1 className="text-2xl font-bold text-gray-800 mb-2">ড্যাশবোর্ড লোড করতে সমস্যা হয়েছে</h1>
+                                <p className="text-gray-600 text-sm mb-4">সাদা স্ক্রিন দেখানোর বদলে এররটি ধরা হয়েছে। পেজটি রিফ্রেশ করুন বা আবার লগইন করুন।</p>
+                                <pre className="text-left text-xs bg-gray-100 rounded p-3 overflow-auto mb-4 text-red-700">{String(this.state.error?.message || this.state.error)}</pre>
+                                <button onClick={() => window.location.reload()} className="bg-agri-600 hover:bg-agri-700 text-white px-5 py-2 rounded-lg font-bold">Reload</button>
+                            </div>
+                        </div>
+                    );
+                }
+                return this.props.children;
+            }
+        }
+
         const App = () => {
             return (
-                <AppProvider>
-                    <MainContent />
-                </AppProvider>
+                <ErrorBoundary>
+                    <AppProvider>
+                        <MainContent />
+                    </AppProvider>
+                </ErrorBoundary>
             );
         };
 
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<App />);
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a05e468ebbe8d977',t:'MTc4MDQ4NTI4MQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a05e57451ed1f5a8',t:'MTc4MDQ4NTk2NQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a068f4bd9c886038',t:'MTc4MDU5NzI3Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script defer src="https://static.cloudflareinsights.com/beacon.min.js/v833ccba57c9e4d2798f2e76cebdd09a11778172276447" integrity="sha512-57MDmcccJXYtNnH+ZiBwzC4jb2rvgVCEokYN+L/nLlmO8rfYT/gIpW2A569iJ/3b+0UEasghjuZH/ma3wIs/EQ==" data-cf-beacon='{"version":"2024.11.0","token":"1954b47c125f43f8b4338b3c4f804e4f","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
-</body>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v833ccba57c9e4d2798f2e76cebdd09a11778172276447" integrity="sha512-57MDmcccJXYtNnH+ZiBwzC4jb2rvgVCEokYN+L/nLlmO8rfYT/gIpW2A569iJ/3b+0UEasghjuZH/ma3wIs/EQ==" data-cf-beacon='{"version":"2024.11.0","token":"1954b47c125f43f8b4338b3c4f804e4f","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a06a16d8ca35df8d',t:'MTc4MDYwOTE1NQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
